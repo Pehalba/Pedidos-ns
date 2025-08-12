@@ -1,0 +1,413 @@
+export class UI {
+  constructor() {
+    this.currentFilters = {
+      search: "",
+      shipping: "",
+      payment: "",
+      status: "",
+    };
+  }
+
+  showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    const overlay = document.getElementById("modal-overlay");
+    if (modal && overlay) {
+      modal.classList.add("modal--show");
+      overlay.classList.add("modal-overlay--show");
+      document.body.style.overflow = "hidden";
+    }
+  }
+
+  hideModal(modalId) {
+    const modal = document.getElementById(modalId);
+    const overlay = document.getElementById("modal-overlay");
+    if (modal && overlay) {
+      modal.classList.remove("modal--show");
+      overlay.classList.remove("modal-overlay--show");
+      document.body.style.overflow = "";
+    }
+  }
+
+  hideAllModals() {
+    document.querySelectorAll(".modal").forEach((modal) => {
+      modal.classList.remove("modal--show");
+    });
+    document
+      .getElementById("modal-overlay")
+      ?.classList.remove("modal-overlay--show");
+    document.body.style.overflow = "";
+  }
+
+  showToast(message, type = "info") {
+    const toast = document.createElement("div");
+    toast.className = `toast toast--${type}`;
+    toast.textContent = message;
+
+    const container =
+      document.getElementById("toast-container") || document.body;
+    container.appendChild(toast);
+
+    // Animar entrada
+    setTimeout(() => {
+      toast.classList.add("toast--show");
+    }, 100);
+
+    // Remover após 3 segundos
+    setTimeout(() => {
+      toast.classList.remove("toast--show");
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+      }, 300);
+    }, 3000);
+  }
+
+  renderBatchesList(batches) {
+    const container = document.getElementById("batches-list");
+    if (!container) return;
+
+    if (batches.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <p>Nenhum lote encontrado</p>
+          <button class="btn btn--primary" onclick="window.app.batch.openCreateModal()">
+            Criar primeiro lote
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    const batchesHtml = batches
+      .map(
+        (batch) => `
+        <div class="batch-card" data-batch-code="${batch.code}">
+          <div class="batch-card__header">
+            <h3 class="batch-card__title">${batch.name}</h3>
+            <p class="batch-card__code">${batch.code}</p>
+          </div>
+          
+          <div class="batch-card__tracking">
+            ${
+              batch.inboundTracking
+                ? `
+              <span class="tracking-code">${batch.inboundTracking}</span>
+              <button class="btn btn--small" onclick="navigator.clipboard.writeText('${batch.inboundTracking}')">
+                Copiar
+              </button>
+            `
+                : `
+              <span class="no-tracking">Sem rastreio</span>
+              <button class="btn btn--small" onclick="window.app.batch.addTracking('${batch.code}')">
+                Adicionar rastreio
+              </button>
+            `
+            }
+          </div>
+          
+          <div class="batch-card__status">
+            <span class="status-badge status-badge--${batch.status.toLowerCase()}">
+              ${this.getStatusText(batch.status)}
+            </span>
+          </div>
+          
+          <div class="batch-card__orders">
+            <span>${batch.orderIds.length} pedidos</span>
+          </div>
+          
+          <div class="batch-card__actions">
+            <button class="btn btn--small" onclick="window.app.batch.openDetailModal('${
+              batch.code
+            }')">
+              Ver detalhes
+            </button>
+            <button class="btn btn--small" onclick="window.app.batch.openEditModal('${
+              batch.code
+            }')">
+              Editar
+            </button>
+            <button class="btn btn--small btn--danger" onclick="window.app.batch.deleteBatch('${
+              batch.code
+            }')">
+              Excluir
+            </button>
+          </div>
+        </div>
+      `
+      )
+      .join("");
+
+    container.innerHTML = batchesHtml;
+  }
+
+  renderOrdersList(orders) {
+    const container = document.getElementById("orders-list");
+    if (!container) return;
+
+    if (orders.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <p>Nenhum pedido encontrado</p>
+          <button class="btn btn--primary" onclick="window.app.order.openCreateModal()">
+            Criar primeiro pedido
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    const ordersHtml = orders
+      .map(
+        (order) => `
+        <div class="order-card" data-order-id="${order.id}">
+          <div class="order-card__header">
+            <h3 class="order-card__id">#${order.id}</h3>
+            <span class="shipping-badge shipping-badge--${order.shippingType.toLowerCase()}">
+              ${order.shippingType}
+            </span>
+          </div>
+          
+          <div class="order-card__content">
+            <p class="order-card__product">${order.productName}</p>
+            <p class="order-card__customer">${order.customerName}</p>
+            ${
+              order.size
+                ? `<p class="order-card__size">Tamanho: ${order.size}</p>`
+                : ""
+            }
+            ${
+              order.sku
+                ? `<p class="order-card__sku">SKU: ${order.sku}</p>`
+                : ""
+            }
+          </div>
+          
+          <div class="order-card__status">
+            <span class="payment-badge payment-badge--${order.paymentStatus.toLowerCase()}">
+              ${this.getPaymentText(order.paymentStatus)}
+            </span>
+          </div>
+          
+          ${
+            order.batchCode
+              ? `
+            <div class="order-card__batch">
+              <span>Lote: ${order.batchCode}</span>
+            </div>
+          `
+              : ""
+          }
+          
+          <div class="order-card__actions">
+            <button class="btn btn--small" onclick="window.app.order.openEditModal('${
+              order.id
+            }')">
+              Editar
+            </button>
+            <button class="btn btn--small btn--danger" onclick="window.app.order.deleteOrder('${
+              order.id
+            }')">
+              Excluir
+            </button>
+          </div>
+        </div>
+      `
+      )
+      .join("");
+
+    container.innerHTML = ordersHtml;
+  }
+
+  renderImportPreview(data, mapping) {
+    const container = document.getElementById("import-preview");
+    if (!container) return;
+
+    if (!data || data.length === 0) {
+      container.innerHTML =
+        '<p class="text-muted">Nenhum dado para visualizar</p>';
+      return;
+    }
+
+    const previewData = data.slice(0, 5); // Mostrar apenas os primeiros 5 registros
+
+    const html = `
+      <div class="import-preview-header">
+        <h3>Preview dos dados (${data.length} registros)</h3>
+        <p>Mostrando os primeiros 5 registros</p>
+      </div>
+      
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Produto</th>
+            <th>Tamanho</th>
+            <th>SKU</th>
+            <th>Frete</th>
+            <th>Pagamento</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${previewData
+            .map(
+              (row) => `
+            <tr>
+              <td>${row[mapping.orderId] || ""}</td>
+              <td>${row[mapping.customerName] || ""}</td>
+              <td>${row[mapping.productName] || ""}</td>
+              <td>${row[mapping.size] || ""}</td>
+              <td>${row[mapping.sku] || ""}</td>
+              <td>${row[mapping.shippingType] || ""}</td>
+              <td>${row[mapping.paymentStatus] || ""}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+      </table>
+      
+      <div class="import-actions">
+        <button class="btn btn--primary" onclick="window.app.csvImport.confirmImport()">
+          Confirmar Importação
+        </button>
+        <button class="btn btn--secondary" onclick="window.app.csvImport.cancelImport()">
+          Cancelar
+        </button>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  renderColumnMapping(data, onMappingChange) {
+    const container = document.getElementById("column-mapping");
+    if (!container) return;
+
+    if (!data || data.length === 0) {
+      container.innerHTML = '<p class="text-muted">Nenhum dado para mapear</p>';
+      return;
+    }
+
+    const sampleRow = data[0];
+    const columns = Object.keys(sampleRow);
+    const requiredFields = [
+      "orderId",
+      "customerName",
+      "productName",
+      "shippingType",
+      "paymentStatus",
+    ];
+    const optionalFields = ["size", "sku", "notes"];
+
+    const html = `
+      <div class="mapping-form">
+        <h3>Mapeamento de Colunas</h3>
+        <p>Selecione qual coluna do CSV corresponde a cada campo do sistema:</p>
+        
+        <div class="mapping-grid">
+          ${requiredFields
+            .map(
+              (field) => `
+            <div class="mapping-field">
+              <label for="mapping-${field}">${this.getFieldLabel(
+                field
+              )} *</label>
+              <select id="mapping-${field}" onchange="window.app.csvImport.updateMapping('${field}', this.value)">
+                <option value="">Selecione...</option>
+                ${columns
+                  .map(
+                    (col) => `
+                  <option value="${col}">${col}</option>
+                `
+                  )
+                  .join("")}
+              </select>
+            </div>
+          `
+            )
+            .join("")}
+          
+          ${optionalFields
+            .map(
+              (field) => `
+            <div class="mapping-field">
+              <label for="mapping-${field}">${this.getFieldLabel(field)}</label>
+              <select id="mapping-${field}" onchange="window.app.csvImport.updateMapping('${field}', this.value)">
+                <option value="">Selecione...</option>
+                ${columns
+                  .map(
+                    (col) => `
+                  <option value="${col}">${col}</option>
+                `
+                  )
+                  .join("")}
+              </select>
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  getStatusText(status) {
+    const statusMap = {
+      CRIADO: "Criado",
+      A_CAMINHO: "A Caminho",
+      RECEBIDO: "Recebido",
+      SEPARADO: "Separado",
+    };
+    return statusMap[status] || status;
+  }
+
+  getPaymentText(payment) {
+    const paymentMap = {
+      PAGO: "Pago",
+      AGUARDANDO: "Aguardando",
+      CANCELADO: "Cancelado",
+    };
+    return paymentMap[payment] || payment;
+  }
+
+  getFieldLabel(field) {
+    const fieldMap = {
+      orderId: "ID do Pedido",
+      customerName: "Nome do Cliente",
+      productName: "Nome do Produto",
+      size: "Tamanho",
+      sku: "SKU",
+      shippingType: "Tipo de Frete",
+      paymentStatus: "Status do Pagamento",
+      notes: "Notas",
+    };
+    return fieldMap[field] || field;
+  }
+
+  updateFilters(filters) {
+    this.currentFilters = { ...this.currentFilters, ...filters };
+  }
+
+  clearFilters() {
+    this.currentFilters = {
+      search: "",
+      shipping: "",
+      payment: "",
+      status: "",
+    };
+
+    // Limpar campos de filtro na interface
+    const searchInput = document.getElementById("order-search");
+    if (searchInput) searchInput.value = "";
+
+    const shippingFilter = document.getElementById("shipping-filter");
+    if (shippingFilter) shippingFilter.value = "";
+
+    const paymentFilter = document.getElementById("payment-filter");
+    if (paymentFilter) paymentFilter.value = "";
+  }
+}

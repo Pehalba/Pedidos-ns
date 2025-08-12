@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Consolidador de Pedidos</title>
+
+    <!-- Vendor CSS -->
+    <link rel="stylesheet" href="../vendor/normalize.css" />
+    <link rel="stylesheet" href="../vendor/fonts.css" />
+
+    <!-- Project CSS -->
+    <link rel="stylesheet" href="css/normalize.css" />
+    <link rel="stylesheet" href="css/fonts.css" />
+    <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/content.css" />
+    <link rel="stylesheet" href="css/elements.css" />
+    <link rel="stylesheet" href="css/feed.css" />
+    <link rel="stylesheet" href="css/footer.css" />
+    <link rel="stylesheet" href="css/page.css" />
+    <link rel="stylesheet" href="css/popup.css" />
+    <link rel="stylesheet" href="css/profile.css" />
+    <link rel="stylesheet" href="css/new.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <header class="header">
+        <div class="header__container">
+          <h1 class="header__title">Consolidador de Pedidos</h1>
+          <nav class="header__nav">
+            <button class="header__nav-btn" data-view="dashboard">
+              Dashboard
+            </button>
+            <button class="header__nav-btn" data-view="orders">Pedidos</button>
+            <button class="header__nav-btn" data-view="import">
+              Importar CSV
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main">
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="view active">
+          <div class="content">
+            <div class="content__header">
+              <h2 class="content__title">Dashboard de Lotes</h2>
+              <button class="btn btn--primary" id="new-batch-btn">
+                Novo Lote
+              </button>
+            </div>
+
+            <!-- Status Cards -->
+            <div class="status-cards">
+              <div class="status-card" data-status="CRIADO">
+                <h3>Criado</h3>
+                <span class="status-card__count">0</span>
+              </div>
+              <div class="status-card" data-status="A_CAMINHO">
+                <h3>A Caminho</h3>
+                <span class="status-card__count">0</span>
+              </div>
+              <div class="status-card" data-status="RECEBIDO">
+                <h3>Recebido</h3>
+                <span class="status-card__count">0</span>
+              </div>
+              <div class="status-card" data-status="SEPARADO">
+                <h3>Separado</h3>
+                <span class="status-card__count">0</span>
+              </div>
+            </div>
+
+            <!-- Batches List -->
+            <div id="batches-list" class="batches-list"></div>
+          </div>
+        </div>
+
+        <!-- Orders View -->
+        <div id="orders-view" class="view">
+          <div class="content">
+            <div class="content__header">
+              <h2 class="content__title">Gerenciar Pedidos</h2>
+              <button class="btn btn--primary" id="new-order-btn">
+                Novo Pedido
+              </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+              <input
+                type="text"
+                id="order-search"
+                class="input"
+                placeholder="Buscar por ID ou produto..."
+              />
+              <select id="shipping-filter" class="select">
+                <option value="">Todos os fretes</option>
+                <option value="PADRAO">Padrão</option>
+                <option value="EXPRESSO">Expresso</option>
+              </select>
+              <select id="payment-filter" class="select">
+                <option value="">Todos os status</option>
+                <option value="PAGO">Pago</option>
+                <option value="AGUARDANDO">Aguardando</option>
+                <option value="CANCELADO">Cancelado</option>
+              </select>
+            </div>
+
+            <!-- Orders List -->
+            <div id="orders-list" class="orders-list"></div>
+          </div>
+        </div>
+
+        <!-- Import View -->
+        <div id="import-view" class="view">
+          <div class="content">
+            <div class="content__header">
+              <h2 class="content__title">Importar CSV</h2>
+            </div>
+
+            <div class="import-section">
+              <input type="file" id="csv-file" accept=".csv" class="input" />
+              <button class="btn btn--primary" id="import-btn">Importar</button>
+            </div>
+
+            <div id="import-preview" class="import-preview"></div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Modals -->
+      <div id="modal-overlay" class="modal-overlay"></div>
+
+      <!-- Batch Modal -->
+      <div id="batch-modal" class="modal">
+        <div class="modal__content">
+          <div class="modal__header">
+            <h3 id="batch-modal-title">Novo Lote</h3>
+            <button class="modal__close" id="batch-modal-close">&times;</button>
+          </div>
+          <form id="batch-form" class="form">
+            <div class="form__group">
+              <label for="batch-name" class="form__label">Nome do Lote *</label>
+              <input type="text" id="batch-name" class="form__input" required />
+            </div>
+            <div class="form__group">
+              <label for="batch-code" class="form__label">Código do Lote</label>
+              <input type="text" id="batch-code" class="form__input" readonly />
+            </div>
+            <div class="form__group">
+              <label for="batch-tracking" class="form__label"
+                >Código de Rastreio</label
+              >
+              <input type="text" id="batch-tracking" class="form__input" />
+            </div>
+            <div class="form__group">
+              <label for="batch-notes" class="form__label">Notas</label>
+              <textarea id="batch-notes" class="form__textarea"></textarea>
+            </div>
+            <div class="form__group">
+              <label class="form__label">Selecionar Pedidos</label>
+              <input
+                type="text"
+                id="order-search-modal"
+                class="form__input"
+                placeholder="Buscar pedidos..."
+              />
+              <div id="available-orders" class="orders-selector"></div>
+            </div>
+            <div class="form__actions">
+              <button
+                type="button"
+                class="btn btn--secondary"
+                id="batch-modal-cancel"
+              >
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn--primary">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Order Modal -->
+      <div id="order-modal" class="modal">
+        <div class="modal__content">
+          <div class="modal__header">
+            <h3 id="order-modal-title">Novo Pedido</h3>
+            <button class="modal__close" id="order-modal-close">&times;</button>
+          </div>
+          <form id="order-form" class="form">
+            <div class="form__group">
+              <label for="order-id" class="form__label">ID do Pedido *</label>
+              <input type="text" id="order-id" class="form__input" required />
+            </div>
+            <div class="form__group">
+              <label for="order-customer" class="form__label"
+                >Nome do Cliente *</label
+              >
+              <input
+                type="text"
+                id="order-customer"
+                class="form__input"
+                required
+              />
+            </div>
+            <div class="form__group">
+              <label for="order-product" class="form__label"
+                >Nome do Produto *</label
+              >
+              <input
+                type="text"
+                id="order-product"
+                class="form__input"
+                required
+              />
+            </div>
+            <div class="form__group">
+              <label for="order-size" class="form__label">Tamanho</label>
+              <input type="text" id="order-size" class="form__input" />
+            </div>
+            <div class="form__group">
+              <label for="order-sku" class="form__label">SKU</label>
+              <input type="text" id="order-sku" class="form__input" />
+            </div>
+            <div class="form__group">
+              <label for="order-shipping" class="form__label"
+                >Tipo de Frete *</label
+              >
+              <select id="order-shipping" class="form__select" required>
+                <option value="PADRAO">Padrão</option>
+                <option value="EXPRESSO">Expresso</option>
+              </select>
+            </div>
+            <div class="form__group">
+              <label for="order-payment" class="form__label"
+                >Status do Pagamento *</label
+              >
+              <select id="order-payment" class="form__select" required>
+                <option value="PAGO">Pago</option>
+                <option value="AGUARDANDO">Aguardando</option>
+                <option value="CANCELADO">Cancelado</option>
+              </select>
+            </div>
+            <div class="form__group">
+              <label for="order-notes" class="form__label">Notas</label>
+              <textarea id="order-notes" class="form__textarea"></textarea>
+            </div>
+            <div class="form__actions">
+              <button
+                type="button"
+                class="btn btn--secondary"
+                id="order-modal-cancel"
+              >
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn--primary">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Batch Detail Modal -->
+      <div id="batch-detail-modal" class="modal modal--large">
+        <div class="modal__content">
+          <div class="modal__header">
+            <h3 id="batch-detail-title">Detalhes do Lote</h3>
+            <button class="modal__close" id="batch-detail-close">
+              &times;
+            </button>
+          </div>
+          <div id="batch-detail-content" class="batch-detail">
+            <!-- Content will be dynamically loaded -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vendor JS -->
+    <script src="../vendor/papaparse.min.js"></script>
+
+    <!-- App JS -->
+    <script type="module" src="js/index.js"></script>
+  </body>
+</html>

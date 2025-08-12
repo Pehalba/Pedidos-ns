@@ -1,0 +1,15 @@
+id,customer,product,size,sku,shipping,payment
+100,João Silva,Brasil 24/25,M,BRA-M-24,PADRÃO,PAGO
+101,Maria Santos,Brasil 24/25,L,BRA-L-24,PADRÃO,PAGO
+102,Pedro Costa,Real 23/24,P,REA-P-23,PADRÃO,PAGO
+103,Ana Oliveira,Real 23/24,M,REA-M-23,PADRÃO,PAGO
+104,Carlos Ferreira,PSG 24/25,G,PSG-G-24,PADRÃO,PAGO
+105,Lucia Martins,PSG 24/25,M,PSG-M-24,PADRÃO,PAGO
+106,Roberto Lima,Brasil 24/25,G,BRA-G-24,PADRÃO,PAGO
+107,Fernanda Rocha,Real 23/24,L,REA-L-23,PADRÃO,PAGO
+108,Ricardo Alves,PSG 24/25,P,PSG-P-24,PADRÃO,PAGO
+109,Patricia Souza,Brasil 24/25,L,BRA-L-24,PADRÃO,PAGO
+200,Marcos Dias,Brasil 24/25,M,BRA-M-24,EXPRESSO,PAGO
+201,Juliana Costa,Real 23/24,G,REA-G-23,EXPRESSO,PAGO
+202,Thiago Santos,PSG 24/25,M,PSG-M-24,EXPRESSO,PAGO
+203,Camila Lima,Brasil 24/25,P,BRA-P-24,EXPRESSO,PAGO
