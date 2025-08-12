@@ -28,36 +28,62 @@ export class Batch {
         this.closeModal();
       });
     }
+
+    // Event listener global para botões de fechar modal
+    document.addEventListener("click", (e) => {
+      if (e.target.id === "batch-modal-close" || e.target.closest("#batch-modal-close")) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log("Botão fechar clicado (evento global)");
+        this.closeModal();
+      }
+    });
   }
 
   setupModalEventListeners() {
+    // Configurar botão de fechar
     const closeBtn = document.getElementById("batch-modal-close");
     if (closeBtn) {
-      // Remover event listeners antigos para evitar duplicação
-      closeBtn.replaceWith(closeBtn.cloneNode(true));
-      const newCloseBtn = document.getElementById("batch-modal-close");
-      newCloseBtn.addEventListener("click", () => {
+      // Remover listeners antigos
+      const newCloseBtn = closeBtn.cloneNode(true);
+      closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+      
+      // Adicionar novo listener
+      newCloseBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log("Botão fechar clicado");
         this.closeModal();
       });
     }
 
+    // Configurar botão salvar
     const saveBtn = document.getElementById("batch-modal-save");
     if (saveBtn) {
-      // Remover event listeners antigos para evitar duplicação
-      saveBtn.replaceWith(saveBtn.cloneNode(true));
-      const newSaveBtn = document.getElementById("batch-modal-save");
-      newSaveBtn.addEventListener("click", () => {
+      // Remover listeners antigos
+      const newSaveBtn = saveBtn.cloneNode(true);
+      saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+      
+      // Adicionar novo listener
+      newSaveBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         this.saveBatch();
       });
     }
 
-    const deleteBtn = document.getElementById("batch-modal-delete");
-    if (deleteBtn) {
-      // Remover event listeners antigos para evitar duplicação
-      deleteBtn.replaceWith(deleteBtn.cloneNode(true));
-      const newDeleteBtn = document.getElementById("batch-modal-delete");
-      newDeleteBtn.addEventListener("click", () => {
-        this.deleteBatch();
+    // Configurar botão cancelar
+    const cancelBtn = document.getElementById("batch-modal-cancel");
+    if (cancelBtn) {
+      // Remover listeners antigos
+      const newCancelBtn = cancelBtn.cloneNode(true);
+      cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+      
+      // Adicionar novo listener
+      newCancelBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.closeModal();
       });
     }
 
