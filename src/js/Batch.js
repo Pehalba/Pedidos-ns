@@ -7,27 +7,6 @@ export class Batch {
   }
 
   setupEventListeners() {
-    const closeBtn = document.getElementById("batch-modal-close");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        this.closeModal();
-      });
-    }
-
-    const saveBtn = document.getElementById("batch-modal-save");
-    if (saveBtn) {
-      saveBtn.addEventListener("click", () => {
-        this.saveBatch();
-      });
-    }
-
-    const deleteBtn = document.getElementById("batch-modal-delete");
-    if (deleteBtn) {
-      deleteBtn.addEventListener("click", () => {
-        this.deleteBatch();
-      });
-    }
-
     // Event listeners para seleção de pedidos
     document.addEventListener("change", (e) => {
       if (e.target.classList.contains("order-checkbox")) {
@@ -41,6 +20,46 @@ export class Batch {
         }
       }
     });
+
+    // Event listener para o overlay (fechar modal ao clicar fora)
+    const overlay = document.getElementById("modal-overlay");
+    if (overlay) {
+      overlay.addEventListener("click", () => {
+        this.closeModal();
+      });
+    }
+  }
+
+  setupModalEventListeners() {
+    const closeBtn = document.getElementById("batch-modal-close");
+    if (closeBtn) {
+      // Remover event listeners antigos para evitar duplicação
+      closeBtn.replaceWith(closeBtn.cloneNode(true));
+      const newCloseBtn = document.getElementById("batch-modal-close");
+      newCloseBtn.addEventListener("click", () => {
+        this.closeModal();
+      });
+    }
+
+    const saveBtn = document.getElementById("batch-modal-save");
+    if (saveBtn) {
+      // Remover event listeners antigos para evitar duplicação
+      saveBtn.replaceWith(saveBtn.cloneNode(true));
+      const newSaveBtn = document.getElementById("batch-modal-save");
+      newSaveBtn.addEventListener("click", () => {
+        this.saveBatch();
+      });
+    }
+
+    const deleteBtn = document.getElementById("batch-modal-delete");
+    if (deleteBtn) {
+      // Remover event listeners antigos para evitar duplicação
+      deleteBtn.replaceWith(deleteBtn.cloneNode(true));
+      const newDeleteBtn = document.getElementById("batch-modal-delete");
+      newDeleteBtn.addEventListener("click", () => {
+        this.deleteBatch();
+      });
+    }
 
     // Event listeners para mudança de status
     const statusSelect = document.getElementById("batch-status");
@@ -71,6 +90,7 @@ export class Batch {
     }
 
     this.showModal();
+    this.setupModalEventListeners();
   }
 
   openEditModal(batchCode) {
@@ -88,6 +108,7 @@ export class Batch {
     }
 
     this.showModal();
+    this.setupModalEventListeners();
   }
 
   openDetailModal(batchCode) {
