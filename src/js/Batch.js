@@ -243,13 +243,22 @@ export class Batch {
     window.app.renderDashboard();
   }
 
-  deleteBatch() {
-    if (!this.currentBatchCode) return;
+  deleteBatch(batchCode = null) {
+    const codeToDelete = batchCode || this.currentBatchCode;
+    if (!codeToDelete) {
+      console.error("Nenhum código de lote fornecido para exclusão");
+      return;
+    }
 
     if (confirm("Tem certeza que deseja excluir este lote?")) {
-      this.store.deleteBatch(this.currentBatchCode);
+      this.store.deleteBatch(codeToDelete);
       this.showToast("Lote excluído com sucesso", "success");
-      this.closeModal();
+      
+      // Se estamos em um modal, fechar
+      if (this.currentBatchCode) {
+        this.closeModal();
+      }
+      
       window.app.renderDashboard();
     }
   }
