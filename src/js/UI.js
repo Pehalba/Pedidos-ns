@@ -19,12 +19,21 @@ export class UI {
   }
 
   hideModal(modalId) {
+    console.log("hideModal chamado com modalId:", modalId);
     const modal = document.getElementById(modalId);
     const overlay = document.getElementById("modal-overlay");
+    console.log("Modal encontrado:", modal);
+    console.log("Overlay encontrado:", overlay);
+    
     if (modal && overlay) {
+      console.log("Removendo classes de visibilidade...");
       modal.classList.remove("modal--show");
       overlay.classList.remove("modal-overlay--show");
       document.body.style.overflow = "";
+      console.log("Classes removidas. Modal visível:", modal.classList.contains("modal--show"));
+      console.log("Overlay visível:", overlay.classList.contains("modal-overlay--show"));
+    } else {
+      console.error("Modal ou overlay não encontrado");
     }
   }
 
