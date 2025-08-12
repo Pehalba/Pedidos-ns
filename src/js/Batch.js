@@ -257,6 +257,15 @@ export class Batch {
     this.store.updateBatchTracking(this.currentBatchCode, tracking);
   }
 
+  addTracking(batchCode) {
+    const tracking = prompt("Digite o código de rastreio:");
+    if (!tracking) return;
+
+    this.store.updateBatchTracking(batchCode, tracking.trim());
+    this.showToast("Código de rastreio adicionado", "success");
+    window.app.renderDashboard();
+  }
+
   renderBatchDetail(batch) {
     const container = document.getElementById("batch-detail-content");
     if (!container) return;

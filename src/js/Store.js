@@ -252,6 +252,16 @@ export class Store {
     return batch;
   }
 
+  updateBatchTracking(code, tracking) {
+    const batch = this.getBatch(code);
+    if (!batch) return null;
+
+    batch.inboundTracking = tracking;
+    batch.updatedAt = new Date().toISOString();
+    this.saveData();
+    return batch;
+  }
+
   associateOrdersToBatch(orderIds, batchCode) {
     const batch = this.getBatch(batchCode);
     if (!batch) return;

@@ -111,6 +111,111 @@ export class Filters {
     window.app.ui.renderBatchesList(batches);
   }
 
+  filterBatchOrders(query) {
+    if (!window.app || !window.app.batch || !window.app.batch.currentBatchCode) return;
+
+    const batch = window.app.store.getBatch(window.app.batch.currentBatchCode);
+    if (!batch) return;
+
+    const orders = batch.orderIds
+      .map((id) => window.app.store.getOrder(id))
+      .filter(Boolean);
+
+    if (query) {
+      const searchTerm = query.toLowerCase();
+      const filteredOrders = orders.filter(
+        (order) =>
+          order.id.toLowerCase().includes(searchTerm) ||
+          order.productName.toLowerCase().includes(searchTerm) ||
+          order.customerName.toLowerCase().includes(searchTerm)
+      );
+
+      // Atualizar a tabela de pedidos no modal de detalhes
+      const container = document.getElementById("batch-detail-content");
+      if (container) {
+        const html = `
+          <div class="batch-detail-header">
+            <h2>${batch.name}</h2>
+            <p class="batch-code">${batch.code}</p>
+            <div class="batch-tracking">
+              ${batch.inboundTracking ? `
+                <span class="tracking-code">${batch.inboundTracking}</span>
+                <button class="btn btn--small" onclick="navigator.clipboard.writeText('${batch.inboundTracking}')">
+                  Copiar
+                </button>
+              ` : `
+                <span class="no-tracking">Sem rastreio</span>
+                <button class="btn btn--small" onclick="window.app.batch.addTracking('${batch.code}')">
+                  Adicionar rastreio
+                </button>
+              `}
+            </div>
+            <div class="batch-status">
+              <select id="batch-detail-status" onchange="window.app.batch.updateBatchStatus(this.value)">
+                <option value="CRIADO" ${batch.status === "CRIADO" ? "selected" : ""}>Criado</option>
+                <option value="A_CAMINHO" ${batch.status === "A_CAMINHO" ? "selected" : ""}>A Caminho</option>
+                <option value="RECEBIDO" ${batch.status === "RECEBIDO" ? "selected" : ""}>Recebido</option>
+                <option value="SEPARADO" ${batch.status === "SEPARADO" ? "selected" : ""}>Separado</option>
+              </select>
+            </div>
+            ${batch.notes ? `<p class="batch-notes">${batch.notes}</p>` : ""}
+          </div>
+
+          <div class="batch-detail-search">
+            <input
+              type="text"
+              id="batch-detail-search"
+              placeholder="Buscar por número do pedido ou produto (/)"
+              value="${query}"
+              oninput="window.app.filters.filterBatchOrders(this.value)"
+            />
+          </div>
+
+          <div class="batch-detail-actions">
+            <button class="btn btn--primary" onclick="window.app.printing.printPickingList('${batch.code}')">
+              Imprimir Picking List
+            </button>
+            <button class="btn btn--secondary" onclick="window.app.printing.printInternalLabels('${batch.code}')">
+              Imprimir Etiquetas Internas
+            </button>
+          </div>
+
+          <div class="batch-orders">
+            <h3>Pedidos do Lote (${filteredOrders.length})</h3>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Produto</th>
+                  <th>Tamanho</th>
+                  <th>Cliente</th>
+                  <th>Tag Interna</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredOrders
+                  .map(
+                    (order) => `
+                  <tr>
+                    <td>${order.id}</td>
+                    <td>${order.productName}</td>
+                    <td>${order.size || "N/A"}</td>
+                    <td>${order.customerName}</td>
+                    <td>${order.internalTag || "N/A"}</td>
+                  </tr>
+                `
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        container.innerHTML = html;
+      }
+    }
+  }
+
   // Métodos para busca avançada
   searchOrdersAdvanced(query, options = {}) {
     if (!window.app || !window.app.store) return [];
