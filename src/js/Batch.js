@@ -203,9 +203,13 @@ export class Batch {
   }
 
   saveBatch() {
+    console.log("saveBatch chamado");
+    
     const nameInput = document.getElementById("batch-name");
     const trackingInput = document.getElementById("batch-tracking");
     const notesInput = document.getElementById("batch-notes");
+
+    console.log("Inputs encontrados:", { nameInput, trackingInput, notesInput });
 
     if (!nameInput || !nameInput.value.trim()) {
       this.showToast("Nome do lote é obrigatório", "error");
@@ -219,13 +223,19 @@ export class Batch {
       orderIds: this.selectedOrderIds,
     };
 
+    console.log("Dados do lote:", batchData);
+    console.log("currentBatchCode:", this.currentBatchCode);
+
     if (this.currentBatchCode) {
       // Editar lote existente
+      console.log("Editando lote existente");
       this.store.updateBatch(this.currentBatchCode, batchData);
       this.showToast("Lote atualizado com sucesso", "success");
     } else {
       // Criar novo lote
-      this.store.addBatch(batchData);
+      console.log("Criando novo lote");
+      const newBatch = this.store.addBatch(batchData);
+      console.log("Novo lote criado:", newBatch);
       this.showToast("Lote criado com sucesso", "success");
     }
 
