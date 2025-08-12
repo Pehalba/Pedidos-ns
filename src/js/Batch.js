@@ -253,6 +253,10 @@ export class Batch {
 
   updateBatchTracking(tracking) {
     if (!this.currentBatchCode) return;
+    if (!this.store || typeof this.store.updateBatchTracking !== 'function') {
+      console.error('Store ou método updateBatchTracking não disponível');
+      return;
+    }
 
     this.store.updateBatchTracking(this.currentBatchCode, tracking);
   }
@@ -260,6 +264,11 @@ export class Batch {
   addTracking(batchCode) {
     const tracking = prompt("Digite o código de rastreio:");
     if (!tracking) return;
+
+    if (!this.store || typeof this.store.updateBatchTracking !== 'function') {
+      console.error('Store ou método updateBatchTracking não disponível');
+      return;
+    }
 
     this.store.updateBatchTracking(batchCode, tracking.trim());
     this.showToast("Código de rastreio adicionado", "success");
