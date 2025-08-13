@@ -195,7 +195,7 @@ export class Store {
     return order;
   }
 
-  updateOrder(id, orderData) {
+  async updateOrder(id, orderData) {
     const orderIndex = this.orders.findIndex((order) => order.id === id);
     if (orderIndex === -1) return null;
 
@@ -215,11 +215,17 @@ export class Store {
     }
 
     this.orders[orderIndex] = newOrder;
-    this.saveData();
+    
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.updateOrder(id, newOrder);
+    }
+    
+    await this.saveData();
     return newOrder;
   }
 
-  deleteOrder(id) {
+  async deleteOrder(id) {
     const order = this.getOrder(id);
     if (!order) return false;
 
@@ -229,7 +235,13 @@ export class Store {
     }
 
     this.orders = this.orders.filter((order) => order.id !== id);
-    this.saveData();
+    
+    // Deletar do Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.deleteOrder(id);
+    }
+    
+    await this.saveData();
     return true;
   }
 
@@ -271,7 +283,7 @@ export class Store {
     return batch;
   }
 
-  updateBatch(code, batchData) {
+  async updateBatch(code, batchData) {
     const batchIndex = this.batches.findIndex((batch) => batch.code === code);
     if (batchIndex === -1) return null;
 
@@ -303,11 +315,17 @@ export class Store {
     }
 
     this.batches[batchIndex] = newBatch;
-    this.saveData();
+    
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.updateBatch(code, newBatch);
+    }
+    
+    await this.saveData();
     return newBatch;
   }
 
-  deleteBatch(code) {
+  async deleteBatch(code) {
     const batch = this.getBatch(code);
     if (!batch) return false;
 
@@ -321,7 +339,13 @@ export class Store {
     });
 
     this.batches = this.batches.filter((batch) => batch.code !== code);
-    this.saveData();
+    
+    // Deletar do Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.deleteBatch(code);
+    }
+    
+    await this.saveData();
     return true;
   }
 
