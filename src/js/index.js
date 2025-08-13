@@ -31,6 +31,9 @@ class App {
       this.createDemoData();
     }
 
+    // Inicializar tema
+    this.initTheme();
+
     // Configurar event listeners
     this.setupEventListeners();
 
@@ -109,6 +112,14 @@ class App {
     if (dashboardSearch) {
       dashboardSearch.addEventListener("input", (e) => {
         this.searchDashboard(e.target.value);
+      });
+    }
+
+    // Toggle do tema
+    const themeToggle = document.getElementById("theme-toggle");
+    if (themeToggle) {
+      themeToggle.addEventListener("click", () => {
+        this.toggleTheme();
       });
     }
 
@@ -417,6 +428,41 @@ class App {
     });
 
     this.store.saveData();
+  }
+
+  initTheme() {
+    // Verificar se há tema salvo no localStorage
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      this.updateThemeIcon(savedTheme);
+    } else {
+      // Verificar preferência do sistema
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const theme = prefersDark ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("theme", theme);
+      this.updateThemeIcon(theme);
+    }
+  }
+
+  toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+    this.updateThemeIcon(newTheme);
+  }
+
+  updateThemeIcon(theme) {
+    const themeToggle = document.getElementById("theme-toggle");
+    if (themeToggle) {
+      const icon = themeToggle.querySelector(".theme-toggle__icon");
+      if (icon) {
+        icon.textContent = theme === "dark" ? "☀️" : "🌙";
+      }
+    }
   }
 }
 
