@@ -88,7 +88,14 @@ export class UI {
       return;
     }
 
-    const batchesHtml = batches
+    // Ordenar lotes por data de criação (mais recentes primeiro)
+    const sortedBatches = batches.sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.updatedAt || 0);
+      const dateB = new Date(b.createdAt || b.updatedAt || 0);
+      return dateB - dateA; // Ordem decrescente (mais recente primeiro)
+    });
+
+    const batchesHtml = sortedBatches
       .map(
         (batch) => `
         <div class="batch-card" data-batch-code="${batch.code}">
@@ -166,7 +173,14 @@ export class UI {
       return;
     }
 
-    const ordersHtml = orders
+    // Ordenar pedidos por data de criação (mais recentes primeiro)
+    const sortedOrders = orders.sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.updatedAt || 0);
+      const dateB = new Date(b.createdAt || b.updatedAt || 0);
+      return dateB - dateA; // Ordem decrescente (mais recente primeiro)
+    });
+
+    const ordersHtml = sortedOrders
       .map(
         (order) => `
         <div class="order-card" data-order-id="${order.id}">
