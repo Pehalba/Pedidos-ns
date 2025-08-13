@@ -719,3 +719,208 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== SEÇÃO DE PEDIDOS EXPRESSO ===== */
+.express-section {
+  margin-top: 40px;
+  padding: 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.express-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.express-section__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.express-section__count {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  backdrop-filter: blur(10px);
+}
+
+.express-section__description {
+  margin-bottom: 25px;
+  opacity: 0.9;
+}
+
+.express-section__description p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.express-orders-list {
+  display: grid;
+  gap: 15px;
+}
+
+.express-order-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.express-order-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.express-order-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.express-order-card__id {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.express-order-card__priority {
+  background: #ff6b6b;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.express-order-card__content {
+  margin-bottom: 15px;
+}
+
+.express-order-card__product {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+  color: #fff;
+}
+
+.express-order-card__customer {
+  font-size: 1rem;
+  margin: 0 0 8px 0;
+  opacity: 0.9;
+}
+
+.express-order-card__details {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.express-order-card__detail {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.express-order-card__status {
+  margin-bottom: 15px;
+}
+
+.express-order-card__payment {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.express-order-card__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.express-order-card__actions .btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.express-order-card__actions .btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.express-order-card__actions .btn--danger {
+  background: rgba(255, 107, 107, 0.8);
+  border-color: rgba(255, 107, 107, 0.5);
+}
+
+.express-order-card__actions .btn--danger:hover {
+  background: rgba(255, 107, 107, 1);
+}
+
+/* Estado vazio para pedidos expresso */
+.express-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  opacity: 0.8;
+}
+
+.express-empty-state p {
+  font-size: 1.1rem;
+  margin: 0 0 15px 0;
+}
+
+.express-empty-state .btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.express-empty-state .btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsividade para seção expresso */
+@media (max-width: 768px) {
+  .express-section {
+    padding: 20px;
+    margin-top: 30px;
+  }
+  
+  .express-section__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .express-order-card__details {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .express-order-card__actions {
+    flex-direction: column;
+  }
+}

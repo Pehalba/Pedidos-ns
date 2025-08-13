@@ -245,6 +245,95 @@ export class UI {
       .join("");
 
     container.innerHTML = ordersHtml;
+
+    // Renderizar seção de pedidos expresso
+    this.renderExpressOrdersList(orders);
+  }
+
+  renderExpressOrdersList(allOrders) {
+    const container = document.getElementById("express-orders-list");
+    const countContainer = document.getElementById("express-count");
+    if (!container || !countContainer) return;
+
+    // Filtrar apenas pedidos EXPRESSO
+    const expressOrders = allOrders.filter(order => order.shippingType === "EXPRESSO");
+
+    // Atualizar contador
+    countContainer.textContent = expressOrders.length;
+
+    if (expressOrders.length === 0) {
+      container.innerHTML = `
+        <div class="express-empty-state">
+          <p>🎉 Nenhum pedido expresso no momento!</p>
+          <p>Quando houver pedidos com frete expresso, eles aparecerão aqui para atenção prioritária.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Ordenar pedidos expresso por data de criação (mais recentes primeiro)
+    const sortedExpressOrders = expressOrders.sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.updatedAt || 0);
+      const dateB = new Date(b.createdAt || b.updatedAt || 0);
+      return dateB - dateA;
+    });
+
+    const expressOrdersHtml = sortedExpressOrders
+      .map(
+        (order) => `
+        <div class="express-order-card" data-order-id="${order.id}">
+          <div class="express-order-card__header">
+            <h3 class="express-order-card__id">#${order.id}</h3>
+            <span class="express-order-card__priority">🚀 Expresso</span>
+          </div>
+          
+          <div class="express-order-card__content">
+            <p class="express-order-card__product">${order.productName}</p>
+            <p class="express-order-card__customer">${order.customerName}</p>
+          </div>
+          
+          <div class="express-order-card__details">
+            ${
+              order.size
+                ? `<span class="express-order-card__detail">📏 ${order.size}</span>`
+                : ""
+            }
+            ${
+              order.sku
+                ? `<span class="express-order-card__detail">🏷️ ${order.sku}</span>`
+                : ""
+            }
+            ${
+              order.batchCode
+                ? `<span class="express-order-card__detail">📦 Lote: ${order.batchCode}</span>`
+                : ""
+            }
+          </div>
+          
+          <div class="express-order-card__status">
+            <span class="express-order-card__payment">
+              ${this.getPaymentText(order.paymentStatus)}
+            </span>
+          </div>
+          
+          <div class="express-order-card__actions">
+            <button class="btn btn--small" onclick="window.app.order.openEditModal('${
+              order.id
+            }')">
+              ✏️ Editar
+            </button>
+            <button class="btn btn--small btn--danger" onclick="window.app.order.deleteOrder('${
+              order.id
+            }')">
+              🗑️ Excluir
+            </button>
+          </div>
+        </div>
+      `
+      )
+      .join("");
+
+    container.innerHTML = expressOrdersHtml;
   }
 
   renderImportPreview(data, mapping) {
