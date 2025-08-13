@@ -104,6 +104,14 @@ class App {
       });
     }
 
+    // Busca do dashboard
+    const dashboardSearch = document.getElementById("dashboard-search");
+    if (dashboardSearch) {
+      dashboardSearch.addEventListener("input", (e) => {
+        this.searchDashboard(e.target.value);
+      });
+    }
+
     // Atalho de busca no detalhe do lote
     document.addEventListener("keydown", (e) => {
       if (e.key === "/" && this.currentView === "batch-detail") {
@@ -201,6 +209,35 @@ class App {
       .getBatches()
       .filter((batch) => batch.status === status);
     this.ui.renderBatchesList(batches);
+  }
+
+  searchDashboard(query) {
+    const searchTerm = query.toLowerCase().trim();
+    
+    if (!searchTerm) {
+      // Se não há termo de busca, mostrar todos os lotes
+      this.renderDashboard();
+      return;
+    }
+
+    const allBatches = this.store.getBatches();
+    const filteredBatches = allBatches.filter((batch) => {
+      // Buscar pelo nome do lote
+      if (batch.name.toLowerCase().includes(searchTerm)) {
+        return true;
+      }
+
+      // Buscar pelos produtos dentro do lote
+      const batchOrders = batch.orderIds
+        .map((orderId) => this.store.getOrder(orderId))
+        .filter(Boolean);
+
+      return batchOrders.some((order) => 
+        order.productName.toLowerCase().includes(searchTerm)
+      );
+    });
+
+    this.ui.renderBatchesList(filteredBatches);
   }
 
   createDemoData() {
