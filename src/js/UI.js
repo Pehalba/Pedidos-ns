@@ -132,9 +132,9 @@ export class UI {
           
           <div class="batch-card__orders">
             <span>${batch.orderIds.length} pedidos</span>
-            <div class="batch-card__orders-list">
-              ${this.renderBatchOrdersPreview(batch.orderIds)}
-            </div>
+                         <div class="batch-card__orders-list">
+               ${this.renderBatchOrdersPreview(batch.orderIds, window.app?.store)}
+             </div>
           </div>
           
           <div class="batch-card__actions">
@@ -439,14 +439,19 @@ export class UI {
     if (paymentFilter) paymentFilter.value = "";
   }
 
-  renderBatchOrdersPreview(orderIds) {
+  renderBatchOrdersPreview(orderIds, store) {
     if (!orderIds || orderIds.length === 0) {
       return '<p class="no-orders">Nenhum pedido no lote</p>';
     }
 
+    // Verificar se o store está disponível
+    if (!store || typeof store.getOrder !== 'function') {
+      return '<p class="no-orders">Carregando...</p>';
+    }
+
     // Buscar os pedidos no store
     const orders = orderIds
-      .map((orderId) => window.app.store.getOrder(orderId))
+      .map((orderId) => store.getOrder(orderId))
       .filter(Boolean);
 
     if (orders.length === 0) {
