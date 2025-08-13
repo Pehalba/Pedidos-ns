@@ -80,7 +80,7 @@ export class UI {
       container.innerHTML = `
         <div class="empty-state">
           <p>Nenhum lote encontrado</p>
-          <button class="btn btn--primary" onclick="window.app.batch.openCreateModal()">
+          <button class="btn btn--primary" data-requires-auth onclick="window.app.batch.openCreateModal()">
             Criar primeiro lote
           </button>
         </div>
@@ -170,7 +170,7 @@ export class UI {
       container.innerHTML = `
         <div class="empty-state">
           <p>Nenhum pedido encontrado</p>
-          <button class="btn btn--primary" onclick="window.app.order.openCreateModal()">
+          <button class="btn btn--primary" data-requires-auth onclick="window.app.order.openCreateModal()">
             Criar primeiro pedido
           </button>
         </div>
