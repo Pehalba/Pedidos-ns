@@ -22,6 +22,13 @@
 
   --color-white: #ffffff;
   --color-black: #000000;
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] {
+  --color-gray-700: #cbd5e1;
+  --color-gray-800: #f1f5f9;
+  --color-gray-900: #ffffff;
 
   /* Status colors */
   --color-status-criado: #3b82f6;
