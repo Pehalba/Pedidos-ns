@@ -132,6 +132,9 @@ export class UI {
           
           <div class="batch-card__orders">
             <span>${batch.orderIds.length} pedidos</span>
+            <div class="batch-card__orders-list">
+              ${this.renderBatchOrdersPreview(batch.orderIds)}
+            </div>
           </div>
           
           <div class="batch-card__actions">
@@ -434,5 +437,48 @@ export class UI {
 
     const paymentFilter = document.getElementById("payment-filter");
     if (paymentFilter) paymentFilter.value = "";
+  }
+
+  renderBatchOrdersPreview(orderIds) {
+    if (!orderIds || orderIds.length === 0) {
+      return '<p class="no-orders">Nenhum pedido no lote</p>';
+    }
+
+    // Buscar os pedidos no store
+    const orders = orderIds
+      .map((orderId) => window.app.store.getOrder(orderId))
+      .filter(Boolean);
+
+    if (orders.length === 0) {
+      return '<p class="no-orders">Pedidos não encontrados</p>';
+    }
+
+    // Mostrar apenas os primeiros 5 pedidos para não sobrecarregar o card
+    const previewOrders = orders.slice(0, 5);
+    const hasMore = orders.length > 5;
+
+    const ordersHtml = previewOrders
+      .map(
+        (order) => `
+        <div class="order-preview-item">
+          <span class="order-preview-id">#${order.id}</span>
+          <span class="order-preview-product">${order.productName}</span>
+        </div>
+      `
+      )
+      .join("");
+
+    let html = ordersHtml;
+
+    if (hasMore) {
+      const remaining = orders.length - 5;
+      html += `
+        <div class="order-preview-more">
+          <span>+${remaining} mais</span>
+        </div>
+      `;
+    }
+
+    return html;
   }
 }
