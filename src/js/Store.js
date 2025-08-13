@@ -1,12 +1,47 @@
+import { FirebaseService } from "./FirebaseService.js";
+
 export class Store {
   constructor() {
     this.storageKey = "consolidador:v1";
     this.orders = [];
     this.batches = [];
     this.nextBatchNumber = 1;
+    this.firebase = new FirebaseService();
   }
 
-  loadData() {
+  async loadData() {
+    try {
+      // Tentar carregar do Firebase primeiro
+      if (this.firebase.isInitialized) {
+        const [orders, batches] = await Promise.all([
+          this.firebase.getOrders(),
+          this.firebase.getBatches()
+        ]);
+        
+        this.orders = orders;
+        this.batches = batches;
+        
+        // Migração: se um lote não tiver name, definir name = code
+        this.batches.forEach((batch) => {
+          if (!batch.name) {
+            batch.name = batch.code;
+          }
+        });
+        
+        // Calcular próximo número de lote
+        this.calculateNextBatchNumber();
+        
+        // Salvar no localStorage como backup
+        this.saveData();
+        
+        console.log("Dados carregados do Firebase");
+        return;
+      }
+    } catch (error) {
+      console.error("Erro ao carregar do Firebase, usando localStorage:", error);
+    }
+
+    // Fallback para localStorage
     try {
       const data = localStorage.getItem(this.storageKey);
       if (data) {
@@ -31,13 +66,19 @@ export class Store {
     }
   }
 
-  saveData() {
+  async saveData() {
     try {
+      // Salvar no localStorage como backup
       const data = {
         orders: this.orders,
         batches: this.batches,
       };
       localStorage.setItem(this.storageKey, JSON.stringify(data));
+      
+      // Sincronizar com Firebase se disponível
+      if (this.firebase.isInitialized) {
+        await this.firebase.syncToLocalStorage();
+      }
     } catch (error) {
       console.error("Erro ao salvar dados:", error);
     }
@@ -88,7 +129,7 @@ export class Store {
     return this.orders.find((order) => order.id === id);
   }
 
-  addOrder(orderData) {
+  async addOrder(orderData) {
     const order = {
       id: orderData.id,
       customerName: orderData.customerName,
@@ -104,7 +145,13 @@ export class Store {
     };
 
     this.orders.push(order);
-    this.saveData();
+    
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.addOrder(order);
+    }
+    
+    await this.saveData();
     return order;
   }
 
