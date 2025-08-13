@@ -140,7 +140,7 @@
         <div class="modal__content">
           <div class="modal__header">
             <h3 id="batch-modal-title">Novo Lote</h3>
-            <button class="modal__close" id="batch-modal-close">&times;</button>
+            <button class="modal__close" id="batch-modal-close" onclick="window.app.batch.closeModal()">&times;</button>
           </div>
           <form id="batch-form" class="form">
             <div class="form__group">
@@ -176,6 +176,7 @@
                 type="button"
                 class="btn btn--secondary"
                 id="batch-modal-cancel"
+                onclick="window.app.batch.closeModal()"
               >
                 Cancelar
               </button>
