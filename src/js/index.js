@@ -213,7 +213,10 @@ class App {
 
   renderDashboard() {
     const batches = this.store.getBatches();
+    const orders = this.store.getOrders();
+    
     this.ui.renderBatchesList(batches, this.store);
+    this.ui.renderExpressOrdersList(orders);
     this.updateStatusCounts();
   }
 

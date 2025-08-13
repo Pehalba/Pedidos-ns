@@ -245,9 +245,6 @@ export class UI {
       .join("");
 
     container.innerHTML = ordersHtml;
-
-    // Renderizar seção de pedidos expresso
-    this.renderExpressOrdersList(orders);
   }
 
   renderExpressOrdersList(allOrders) {
