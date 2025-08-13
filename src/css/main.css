@@ -150,9 +150,38 @@ body {
 /* Batches List */
 .batches-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-lg);
   max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.batches-list::-webkit-scrollbar {
+  height: 8px;
+}
+
+.batches-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.batches-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.batches-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Limitar altura e adicionar scroll vertical se necessário */
+.batches-list {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .batch-card {
@@ -664,6 +693,8 @@ body {
   .batches-list {
     grid-template-columns: 1fr;
     gap: var(--spacing-md);
+    max-height: none;
+    overflow: visible;
   }
 
   .batch-card {
@@ -720,6 +751,17 @@ body {
   }
 }
 
+/* Tablet - 2 cards por linha */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .batches-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .express-orders-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* ===== SEÇÃO DE PEDIDOS EXPRESSO ===== */
 .express-section {
   margin-top: 40px;
@@ -764,9 +806,38 @@ body {
 
 .express-orders-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 15px;
   max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+}
+
+.express-orders-list::-webkit-scrollbar {
+  height: 8px;
+}
+
+.express-orders-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.express-orders-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.express-orders-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Limitar altura e adicionar scroll vertical se necessário */
+.express-orders-list {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .express-order-card {
@@ -924,6 +995,8 @@ body {
   .express-orders-list {
     grid-template-columns: 1fr;
     gap: 10px;
+    max-height: none;
+    overflow: visible;
   }
   
   .express-order-card__details {
