@@ -152,6 +152,33 @@
                 </small>
               </p>
             </div>
+
+            <!-- Backup e Restauração -->
+            <div class="backup-section">
+              <h3>Backup e Restauração</h3>
+              <p>Exporte seus dados para usar em outros dispositivos ou faça backup:</p>
+              
+              <div class="backup-actions">
+                <button class="btn btn--primary" id="export-data-btn">
+                  📤 Exportar Dados
+                </button>
+                <button class="btn btn--secondary" id="import-data-btn">
+                  📥 Importar Dados
+                </button>
+                <input type="file" id="backup-file" accept=".json" class="input" style="display: none;" />
+              </div>
+              
+              <div class="backup-info">
+                <p class="text-muted">
+                  <small>
+                    <strong>Como usar:</strong><br>
+                    1. Clique em "Exportar Dados" para baixar um arquivo com todos os seus dados<br>
+                    2. Salve o arquivo no Google Drive, Dropbox ou envie por email<br>
+                    3. Em outro dispositivo, clique em "Importar Dados" e selecione o arquivo
+                  </small>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </main>

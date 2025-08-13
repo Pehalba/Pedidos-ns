@@ -379,6 +379,41 @@ body {
   color: var(--color-gray-500);
 }
 
+/* Backup Section */
+.backup-section {
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--color-green-50);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-green-200);
+}
+
+.backup-section h3 {
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-green-700);
+}
+
+.backup-section p {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-green-600);
+}
+
+.backup-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.backup-info {
+  margin-top: var(--spacing-md);
+}
+
+.backup-info .text-muted {
+  color: var(--color-gray-600);
+  line-height: 1.5;
+}
+
 /* ===== UTILITIES ===== */
 .text-center {
   text-align: center;

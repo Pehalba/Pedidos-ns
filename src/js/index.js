@@ -81,6 +81,28 @@ class App {
       });
     }
 
+    // Backup e Restauração
+    const exportDataBtn = document.getElementById("export-data-btn");
+    if (exportDataBtn) {
+      exportDataBtn.addEventListener("click", () => {
+        this.exportData();
+      });
+    }
+
+    const importDataBtn = document.getElementById("import-data-btn");
+    const backupFileInput = document.getElementById("backup-file");
+    if (importDataBtn) {
+      importDataBtn.addEventListener("click", () => {
+        backupFileInput.click();
+      });
+    }
+
+    if (backupFileInput) {
+      backupFileInput.addEventListener("change", (e) => {
+        this.importData(e.target.files[0]);
+      });
+    }
+
     // Status cards
     document.querySelectorAll(".status-card").forEach((card) => {
       card.addEventListener("click", (e) => {
@@ -424,6 +446,75 @@ class App {
     });
 
     this.store.saveData();
+  }
+
+  exportData() {
+    try {
+      const data = {
+        orders: this.store.getOrders(),
+        batches: this.store.getBatches(),
+        exportDate: new Date().toISOString(),
+        version: "1.0"
+      };
+
+      const dataStr = JSON.stringify(data, null, 2);
+      const dataBlob = new Blob([dataStr], { type: "application/json" });
+      
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `pedidos-backup-${new Date().toISOString().split('T')[0]}.json`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      URL.revokeObjectURL(url);
+      
+      this.ui.showToast("Dados exportados com sucesso!", "success");
+    } catch (error) {
+      console.error("Erro ao exportar dados:", error);
+      this.ui.showToast("Erro ao exportar dados", "error");
+    }
+  }
+
+  importData(file) {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        
+        if (!data.orders || !data.batches) {
+          throw new Error("Arquivo inválido");
+        }
+
+        if (confirm("Isso irá substituir todos os dados atuais. Deseja continuar?")) {
+          // Limpar dados atuais
+          localStorage.removeItem("orders");
+          localStorage.removeItem("batches");
+          
+          // Carregar novos dados
+          localStorage.setItem("orders", JSON.stringify(data.orders));
+          localStorage.setItem("batches", JSON.stringify(data.batches));
+          
+          // Recarregar dados no store
+          this.store.loadData();
+          
+          // Atualizar interface
+          this.renderDashboard();
+          this.updateStatusCounts();
+          
+          this.ui.showToast("Dados importados com sucesso!", "success");
+        }
+      } catch (error) {
+        console.error("Erro ao importar dados:", error);
+        this.ui.showToast("Erro ao importar dados. Verifique se o arquivo é válido.", "error");
+      }
+    };
+    
+    reader.readAsText(file);
   }
 }
 
