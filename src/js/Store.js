@@ -32,10 +32,10 @@ export class Store {
         this.isLoaded = true;
         console.log("Dados carregados do localStorage:", { orders: this.orders.length, batches: this.batches.length });
         
-        // Tentar sincronizar com Firebase em background
-        if (this.firebase.isInitialized) {
-          this.syncToFirebaseInBackground();
-        }
+        // Tentar sincronizar com Firebase em background (desabilitado temporariamente)
+        // if (this.firebase.isInitialized) {
+        //   this.syncToFirebaseInBackground();
+        // }
       } else {
         this.isLoaded = true;
         console.log("Nenhum dado encontrado, iniciando com dados vazios");
@@ -57,10 +57,10 @@ export class Store {
       };
       localStorage.setItem(this.storageKey, JSON.stringify(data));
       
-      // Sincronizar com Firebase se disponível
-      if (this.firebase.isInitialized) {
-        await this.firebase.syncToLocalStorage();
-      }
+      // Sincronizar com Firebase se disponível (desabilitado temporariamente)
+      // if (this.firebase.isInitialized) {
+      //   await this.firebase.syncToLocalStorage();
+      // }
     } catch (error) {
       console.error("Erro ao salvar dados:", error);
     }
@@ -138,10 +138,10 @@ export class Store {
 
     this.orders.push(order);
     
-    // Salvar no Firebase se disponível
-    if (this.firebase.isInitialized) {
-      await this.firebase.addOrder(order);
-    }
+    // Salvar no Firebase se disponível (desabilitado temporariamente)
+    // if (this.firebase.isInitialized) {
+    //   await this.firebase.addOrder(order);
+    // }
     
     await this.saveData();
     return order;
