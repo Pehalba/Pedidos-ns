@@ -274,15 +274,69 @@ body {
 /* Orders List */
 .orders-list {
   display: grid;
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-lg);
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.orders-list::-webkit-scrollbar {
+  height: 8px;
+}
+
+.orders-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.orders-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.orders-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Limitar altura e adicionar scroll vertical se necessário */
+.orders-list {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .order-card {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  transition: all var(--transition-fast);
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.order-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+  border-radius: 16px 16px 0 0;
+}
+
+.order-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-color: #3b82f6;
 }
 
 .order-card:hover {
@@ -294,54 +348,167 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--spacing-md);
-  gap: var(--spacing-md);
+  margin-bottom: 15px;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .order-card__id {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-gray-900);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1e293b;
   font-family: "Courier New", monospace;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
 }
 
 .order-card__badges {
   display: flex;
-  gap: var(--spacing-xs);
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.order-card__content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+.shipping-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
 }
 
-.order-card__field {
+.shipping-badge--padrao {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+.shipping-badge--expresso {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.order-card__content {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 12px;
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 1;
 }
 
-.order-card__label {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-gray-600);
+.order-card__product {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.order-card__customer {
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+}
+
+.order-card__size {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.order-card__sku {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0;
+  font-family: "Courier New", monospace;
+  background: rgba(139, 92, 246, 0.1);
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.order-card__status {
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 1;
+}
+
+.payment-badge {
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.5px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  display: inline-block;
 }
 
-.order-card__value {
-  font-size: var(--font-size-sm);
-  color: var(--color-gray-800);
-  font-weight: var(--font-weight-medium);
+.payment-badge--pago {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+.payment-badge--aguardando {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+.payment-badge--cancelado {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.order-card__batch {
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 1;
+}
+
+.order-card__batch span {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-block;
+  box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
 }
 
 .order-card__actions {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: 10px;
   flex-wrap: wrap;
+  margin-top: auto;
+  position: relative;
+  z-index: 1;
 }
 
 /* Filters */
@@ -720,8 +887,19 @@ body {
     gap: var(--spacing-sm);
   }
 
-  .order-card__content {
+  .orders-list {
     grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+    max-height: none;
+    overflow: visible;
+  }
+
+  .order-card {
+    min-height: auto;
+    padding: var(--spacing-lg);
+  }
+
+  .order-card__content {
     gap: var(--spacing-sm);
   }
 
@@ -758,6 +936,10 @@ body {
   }
   
   .express-orders-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .orders-list {
     grid-template-columns: repeat(2, 1fr);
   }
 }
