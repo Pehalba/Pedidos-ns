@@ -12,10 +12,45 @@ export class Store {
 
   async loadData() {
     try {
-      // TEMPORÁRIO: Desabilitar Firebase devido a erros de configuração
-      console.log("Firebase temporariamente desabilitado - usando localStorage");
+      // Aguardar um pouco para o Firebase inicializar completamente
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Carregar apenas do localStorage por enquanto
+      // Tentar carregar do Firebase primeiro
+      if (this.firebase.isInitialized) {
+        console.log("Tentando carregar dados do Firebase...");
+        try {
+          const orders = await this.firebase.getOrders();
+          const batches = await this.firebase.getBatches();
+          
+          console.log("Dados recebidos do Firebase:", { orders: orders?.length || 0, batches: batches?.length || 0 });
+          
+          this.orders = orders || [];
+          this.batches = batches || [];
+          
+          // Migração: se um lote não tiver name, definir name = code
+          this.batches.forEach((batch) => {
+            if (!batch.name) {
+              batch.name = batch.code;
+            }
+          });
+          
+          // Calcular próximo número de lote
+          this.calculateNextBatchNumber();
+          
+          // Salvar no localStorage como backup
+          await this.saveData();
+          
+          this.isLoaded = true;
+          console.log("Dados carregados do Firebase:", { orders: this.orders.length, batches: this.batches.length });
+          return;
+        } catch (firebaseError) {
+          console.error("Erro ao carregar do Firebase, usando localStorage:", firebaseError);
+        }
+      } else {
+        console.log("Firebase não inicializado, usando localStorage");
+      }
+
+      // Fallback para localStorage
       console.log("Carregando dados do localStorage...");
       const data = localStorage.getItem(this.storageKey);
       if (data) {
@@ -35,6 +70,11 @@ export class Store {
         
         this.isLoaded = true;
         console.log("Dados carregados do localStorage:", { orders: this.orders.length, batches: this.batches.length });
+        
+        // Tentar sincronizar com Firebase em background
+        if (this.firebase.isInitialized) {
+          this.syncToFirebaseInBackground();
+        }
       } else {
         this.isLoaded = true;
         console.log("Nenhum dado encontrado, iniciando com dados vazios");
@@ -49,13 +89,17 @@ export class Store {
 
   async saveData() {
     try {
-      // TEMPORÁRIO: Salvar apenas no localStorage
+      // Salvar no localStorage como backup
       const data = {
         orders: this.orders,
         batches: this.batches,
       };
       localStorage.setItem(this.storageKey, JSON.stringify(data));
-      console.log("Dados salvos no localStorage");
+      
+      // Sincronizar com Firebase se disponível
+      if (this.firebase.isInitialized) {
+        await this.firebase.syncToLocalStorage();
+      }
     } catch (error) {
       console.error("Erro ao salvar dados:", error);
     }
@@ -142,10 +186,10 @@ export class Store {
 
     this.orders.push(order);
     
-    // TEMPORÁRIO: Firebase desabilitado
-    // if (this.firebase.isInitialized) {
-    //   await this.firebase.addOrder(order);
-    // }
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.addOrder(order);
+    }
     
     await this.saveData();
     return order;
@@ -212,10 +256,10 @@ export class Store {
     this.batches.push(batch);
     this.nextBatchNumber++;
     
-    // TEMPORÁRIO: Firebase desabilitado
-    // if (this.firebase.isInitialized) {
-    //   await this.firebase.addBatch(batch);
-    // }
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.addBatch(batch);
+    }
     
     await this.saveData();
 
