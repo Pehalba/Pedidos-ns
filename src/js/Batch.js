@@ -318,7 +318,9 @@ export class Batch {
           ${
             batch.inboundTracking
               ? `
-            <span class="tracking-code">${batch.inboundTracking}</span>
+            <a href="https://pacotevicio.app/?code=${batch.inboundTracking}" target="_blank" class="tracking-code tracking-link">
+              ${batch.inboundTracking}
+            </a>
             <button class="btn btn--small" onclick="navigator.clipboard.writeText('${batch.inboundTracking}')">
               Copiar
             </button>

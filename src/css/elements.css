@@ -417,3 +417,20 @@
     display: none;
   }
 }
+
+/* Tracking Links */
+.tracking-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+}
+
+.tracking-link:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+.tracking-link:active {
+  transform: scale(0.98);
+}
