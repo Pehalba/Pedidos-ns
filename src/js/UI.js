@@ -89,11 +89,24 @@ export class UI {
     }
 
     // Ordenar lotes por data de criação (mais recentes primeiro)
+    console.log("Lotes antes da ordenação:", batches.map(b => ({ 
+      name: b.name, 
+      createdAt: b.createdAt, 
+      updatedAt: b.updatedAt 
+    })));
+    
     const sortedBatches = batches.sort((a, b) => {
       const dateA = new Date(a.createdAt || a.updatedAt || 0);
       const dateB = new Date(b.createdAt || b.updatedAt || 0);
+      console.log(`Comparando: ${a.name} (${dateA}) vs ${b.name} (${dateB})`);
       return dateB - dateA; // Ordem decrescente (mais recente primeiro)
     });
+    
+    console.log("Lotes após ordenação:", sortedBatches.map(b => ({ 
+      name: b.name, 
+      createdAt: b.createdAt, 
+      updatedAt: b.updatedAt 
+    })));
 
     const batchesHtml = sortedBatches
       .map(
