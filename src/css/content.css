@@ -291,7 +291,7 @@
 
 /* Dashboard Search */
 .dashboard-search {
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: 20px;
 }
 
 .dashboard-search .input {

@@ -170,6 +170,15 @@ body {
   line-height: 1.5;
 }
 
+/* Batches Container */
+.batches-container {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 30px;
+  border-left: 4px solid var(--primary-color);
+}
+
 /* Batches List */
 .batches-list {
   display: grid;
@@ -180,6 +189,7 @@ body {
   padding-bottom: 10px;
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 #f1f5f9;
+  margin-bottom: 0;
 }
 
 .batches-list::-webkit-scrollbar {
@@ -921,6 +931,11 @@ body {
 
   .batches-section-description {
     font-size: 0.9rem;
+  }
+
+  .batches-container {
+    padding: 15px;
+    margin-bottom: 20px;
   }
 
   .orders-list {
