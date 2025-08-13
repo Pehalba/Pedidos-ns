@@ -12,14 +12,17 @@ export class Store {
 
   async loadData() {
     try {
+      // Aguardar um pouco para o Firebase inicializar completamente
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       // Tentar carregar do Firebase primeiro
       if (this.firebase.isInitialized) {
         console.log("Tentando carregar dados do Firebase...");
         try {
-          const [orders, batches] = await Promise.all([
-            this.firebase.getOrders(),
-            this.firebase.getBatches()
-          ]);
+          const orders = await this.firebase.getOrders();
+          const batches = await this.firebase.getBatches();
+          
+          console.log("Dados recebidos do Firebase:", { orders: orders?.length || 0, batches: batches?.length || 0 });
           
           this.orders = orders || [];
           this.batches = batches || [];
@@ -43,6 +46,8 @@ export class Store {
         } catch (firebaseError) {
           console.error("Erro ao carregar do Firebase, usando localStorage:", firebaseError);
         }
+      } else {
+        console.log("Firebase não inicializado, usando localStorage");
       }
 
       // Fallback para localStorage
@@ -103,7 +108,16 @@ export class Store {
   async syncToFirebaseInBackground() {
     try {
       console.log("Sincronizando dados com Firebase em background...");
-      await this.firebase.syncToLocalStorage();
+      
+      // Enviar dados atuais para o Firebase
+      for (const order of this.orders) {
+        await this.firebase.addOrder(order);
+      }
+      
+      for (const batch of this.batches) {
+        await this.firebase.addBatch(batch);
+      }
+      
       console.log("Sincronização com Firebase concluída");
     } catch (error) {
       console.error("Erro na sincronização com Firebase:", error);
