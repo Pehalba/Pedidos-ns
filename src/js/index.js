@@ -218,11 +218,17 @@ class App {
     this.ui.renderBatchesList(batches, this.store);
     this.ui.renderExpressOrdersList(orders);
     this.updateStatusCounts();
+    
+    // Reaplicar autenticação após renderizar novos elementos
+    this.auth.updateUI();
   }
 
   renderOrders() {
     const orders = this.store.getOrders();
     this.ui.renderOrdersList(orders);
+    
+    // Reaplicar autenticação após renderizar novos elementos
+    this.auth.updateUI();
   }
 
   renderImport() {

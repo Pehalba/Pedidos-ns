@@ -48,9 +48,6 @@ export class AuthService {
     const requiresAuthElements = document.querySelectorAll('[data-requires-auth]');
     const viewOnlyElements = document.querySelectorAll('[data-view-only]');
 
-    console.log('AuthService.updateUI() - isAuthenticated:', this.isAuthenticated);
-    console.log('Elementos que requerem auth encontrados:', requiresAuthElements.length);
-
     if (this.isAuthenticated) {
       // Usuário logado
       if (authBtn) {
@@ -61,7 +58,6 @@ export class AuthService {
       // Mostrar elementos que requerem autenticação
       requiresAuthElements.forEach(el => {
         el.style.display = '';
-        console.log('Mostrando elemento:', el);
       });
       
       // Esconder avisos de modo visualização
@@ -78,7 +74,6 @@ export class AuthService {
       // Esconder elementos que requerem autenticação
       requiresAuthElements.forEach(el => {
         el.style.display = 'none';
-        console.log('Escondendo elemento:', el);
       });
       
       // Mostrar avisos de modo visualização
