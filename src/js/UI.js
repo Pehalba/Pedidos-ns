@@ -143,12 +143,12 @@ export class UI {
             }')">
               Ver detalhes
             </button>
-            <button class="btn btn--small" onclick="window.app.batch.openEditModal('${
+            <button class="btn btn--small" data-requires-auth onclick="window.app.batch.openEditModal('${
               batch.code
             }')">
               Editar
             </button>
-            <button class="btn btn--small btn--danger" onclick="window.app.batch.deleteBatch('${
+            <button class="btn btn--small btn--danger" data-requires-auth onclick="window.app.batch.deleteBatch('${
               batch.code
             }')">
               Excluir
@@ -228,12 +228,12 @@ export class UI {
           }
           
           <div class="order-card__actions">
-            <button class="btn btn--small" onclick="window.app.order.openEditModal('${
+            <button class="btn btn--small" data-requires-auth onclick="window.app.order.openEditModal('${
               order.id
             }')">
               Editar
             </button>
-            <button class="btn btn--small btn--danger" onclick="window.app.order.deleteOrder('${
+            <button class="btn btn--small btn--danger" data-requires-auth onclick="window.app.order.deleteOrder('${
               order.id
             }')">
               Excluir

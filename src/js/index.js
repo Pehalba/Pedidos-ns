@@ -6,6 +6,7 @@ import { CsvImport } from "./CsvImport.js";
 import { Filters } from "./Filters.js";
 import { Printing } from "./Printing.js";
 import { Utils } from "./Utils.js";
+import { AuthService } from "./AuthService.js";
 
 class App {
   constructor() {
@@ -17,6 +18,7 @@ class App {
     this.filters = new Filters();
     this.printing = new Printing();
     this.utils = new Utils();
+    this.auth = new AuthService();
 
     this.currentView = "dashboard";
     this.init();
@@ -34,6 +36,9 @@ class App {
 
     // Atualizar contadores
     this.updateStatusCounts();
+
+    // Inicializar UI de autenticação
+    this.auth.updateUI();
   }
 
   setupEventListeners() {
@@ -44,6 +49,20 @@ class App {
         this.showView(view);
       });
     });
+
+    // Autenticação
+    const authBtn = document.getElementById('auth-btn');
+    if (authBtn) {
+      authBtn.addEventListener('click', () => {
+        if (this.auth.checkAuth()) {
+          this.auth.logout();
+          this.auth.updateUI();
+          this.auth.showToast('Logout realizado com sucesso!', 'success');
+        } else {
+          this.auth.showLoginModal();
+        }
+      });
+    }
 
     // Dashboard
     const newBatchBtn = document.getElementById("new-batch-btn");

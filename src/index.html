@@ -50,6 +50,9 @@
             <button class="header__nav-btn" data-view="import">
               Importar CSV
             </button>
+            <button class="btn btn--secondary" id="auth-btn">
+              Entrar
+            </button>
           </nav>
         </div>
       </header>
@@ -59,9 +62,12 @@
         <!-- Dashboard View -->
         <div id="dashboard-view" class="view active">
           <div class="content">
+            <div data-view-only style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 12px; border-radius: 6px; margin: 10px 0; text-align: center; font-size: 14px;">
+              🔒 <strong>Modo Visualização:</strong> Faça login para criar, editar ou excluir dados.
+            </div>
             <div class="content__header">
               <h2 class="content__title">Dashboard de Lotes</h2>
-              <button class="btn btn--primary" id="new-batch-btn">
+              <button class="btn btn--primary" id="new-batch-btn" data-requires-auth>
                 Novo Lote
               </button>
             </div>
@@ -104,9 +110,12 @@
         <!-- Orders View -->
         <div id="orders-view" class="view">
           <div class="content">
+            <div data-view-only style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 12px; border-radius: 6px; margin: 10px 0; text-align: center; font-size: 14px;">
+              🔒 <strong>Modo Visualização:</strong> Faça login para criar, editar ou excluir dados.
+            </div>
             <div class="content__header">
               <h2 class="content__title">Gerenciar Pedidos</h2>
-              <button class="btn btn--primary" id="new-order-btn">
+              <button class="btn btn--primary" id="new-order-btn" data-requires-auth>
                 Novo Pedido
               </button>
             </div>
@@ -358,6 +367,26 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 1001; min-width: 300px;">
+      <h3 style="margin: 0 0 20px 0; text-align: center;">🔐 Autenticação</h3>
+      <form id="login-form" onsubmit="event.preventDefault(); window.app.auth.handleLoginAttempt();">
+        <div style="margin-bottom: 15px;">
+          <label for="login-username" style="display: block; margin-bottom: 5px; font-weight: 500;">Usuário</label>
+          <input type="text" id="login-username" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" placeholder="Digite seu usuário" required />
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label for="login-password" style="display: block; margin-bottom: 5px; font-weight: 500;">Senha</label>
+          <input type="password" id="login-password" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" placeholder="Digite sua senha" required />
+        </div>
+        <div id="login-error" style="color: #dc3545; font-size: 14px; margin-bottom: 15px; display: none;"></div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="btn btn--secondary" onclick="window.app.auth.hideLoginModal()">Cancelar</button>
+          <button type="submit" class="btn btn--primary">Entrar</button>
+        </div>
+      </form>
     </div>
 
     <!-- Firebase SDK -->

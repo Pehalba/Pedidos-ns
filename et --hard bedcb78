@@ -1,0 +1,10 @@
+[33m93ddf66[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m CSS restaurado - loading spinner escondido via CSS
+[33m22025da[m Loading spinner temporariamente desabilitado para testes
+[33m8ed06aa[m Corrigido problema de inicialização - loading travado
+[33m078fbf6[m Sistema de autenticação implementado - modo visualização/edição
+[33mbedcb78[m Adicionado loading spinner durante carregamento do Firebase
+[33m070502f[m Correcao: timestamps para ordenacao correta dos pedidos
+[33m73aada8[m Debug: logs para verificar ordenacao dos lotes
+[33m6f099cc[m Correcao: timestamps ISO para ordenacao correta dos lotes
+[33mcc2adcc[m Correcao: metodos async para update e delete sincronizarem com Firebase
+[33m3e9b878[m Correcao: update e delete agora sincronizam com Firebase
