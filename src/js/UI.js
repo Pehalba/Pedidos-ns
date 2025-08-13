@@ -72,7 +72,7 @@ export class UI {
     }, 3000);
   }
 
-  renderBatchesList(batches) {
+  renderBatchesList(batches, store = null) {
     const container = document.getElementById("batches-list");
     if (!container) return;
 
@@ -133,7 +133,7 @@ export class UI {
           <div class="batch-card__orders">
             <span>${batch.orderIds.length} pedidos</span>
                          <div class="batch-card__orders-list">
-               ${this.renderBatchOrdersPreview(batch.orderIds, window.app?.store)}
+               ${this.renderBatchOrdersPreview(batch.orderIds, store || window.app?.store)}
              </div>
           </div>
           

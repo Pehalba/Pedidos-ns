@@ -31,9 +31,6 @@ class App {
       this.createDemoData();
     }
 
-    // Inicializar tema
-    this.initTheme();
-
     // Configurar event listeners
     this.setupEventListeners();
 
@@ -115,14 +112,6 @@ class App {
       });
     }
 
-    // Toggle do tema
-    const themeToggle = document.getElementById("theme-toggle");
-    if (themeToggle) {
-      themeToggle.addEventListener("click", () => {
-        this.toggleTheme();
-      });
-    }
-
     // Atalho de busca no detalhe do lote
     document.addEventListener("keydown", (e) => {
       if (e.key === "/" && this.currentView === "batch-detail") {
@@ -176,7 +165,7 @@ class App {
 
   renderDashboard() {
     const batches = this.store.getBatches();
-    this.ui.renderBatchesList(batches);
+    this.ui.renderBatchesList(batches, this.store);
     this.updateStatusCounts();
   }
 
@@ -219,12 +208,12 @@ class App {
     const batches = this.store
       .getBatches()
       .filter((batch) => batch.status === status);
-    this.ui.renderBatchesList(batches);
+    this.ui.renderBatchesList(batches, this.store);
   }
 
   searchDashboard(query) {
     const searchTerm = query.toLowerCase().trim();
-    
+
     if (!searchTerm) {
       // Se não há termo de busca, mostrar todos os lotes
       this.renderDashboard();
@@ -243,12 +232,12 @@ class App {
         .map((orderId) => this.store.getOrder(orderId))
         .filter(Boolean);
 
-      return batchOrders.some((order) => 
+      return batchOrders.some((order) =>
         order.productName.toLowerCase().includes(searchTerm)
       );
     });
 
-    this.ui.renderBatchesList(filteredBatches);
+    this.ui.renderBatchesList(filteredBatches, this.store);
   }
 
   createDemoData() {
@@ -428,41 +417,6 @@ class App {
     });
 
     this.store.saveData();
-  }
-
-  initTheme() {
-    // Verificar se há tema salvo no localStorage
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      document.documentElement.setAttribute("data-theme", savedTheme);
-      this.updateThemeIcon(savedTheme);
-    } else {
-      // Verificar preferência do sistema
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const theme = prefersDark ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", theme);
-      localStorage.setItem("theme", theme);
-      this.updateThemeIcon(theme);
-    }
-  }
-
-  toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute("data-theme");
-    const newTheme = currentTheme === "dark" ? "light" : "dark";
-    
-    document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("theme", newTheme);
-    this.updateThemeIcon(newTheme);
-  }
-
-  updateThemeIcon(theme) {
-    const themeToggle = document.getElementById("theme-toggle");
-    if (themeToggle) {
-      const icon = themeToggle.querySelector(".theme-toggle__icon");
-      if (icon) {
-        icon.textContent = theme === "dark" ? "☀️" : "🌙";
-      }
-    }
   }
 }
 

@@ -108,7 +108,7 @@ export class Filters {
       ? window.app.store.getBatches().filter((batch) => batch.status === status)
       : window.app.store.getBatches();
 
-    window.app.ui.renderBatchesList(batches);
+    window.app.ui.renderBatchesList(batches, window.app.store);
   }
 
   filterBatchOrders(query) {

@@ -38,9 +38,6 @@
             <button class="header__nav-btn" data-view="import">
               Importar CSV
             </button>
-            <button class="header__theme-toggle" id="theme-toggle" title="Alternar modo escuro">
-              <span class="theme-toggle__icon">🌙</span>
-            </button>
           </nav>
         </div>
       </header>
@@ -153,7 +150,13 @@
         <div class="modal__content">
           <div class="modal__header">
             <h3 id="batch-modal-title">Novo Lote</h3>
-            <button class="modal__close" id="batch-modal-close" onclick="window.app.batch.closeModal()">&times;</button>
+            <button
+              class="modal__close"
+              id="batch-modal-close"
+              onclick="window.app.batch.closeModal()"
+            >
+              &times;
+            </button>
           </div>
           <form id="batch-form" class="form">
             <div class="form__group">
@@ -193,7 +196,13 @@
               >
                 Cancelar
               </button>
-              <button type="button" class="btn btn--primary" id="batch-modal-save">Salvar</button>
+              <button
+                type="button"
+                class="btn btn--primary"
+                id="batch-modal-save"
+              >
+                Salvar
+              </button>
             </div>
           </form>
         </div>
@@ -283,7 +292,11 @@
         <div class="modal__content">
           <div class="modal__header">
             <h3 id="batch-detail-title">Detalhes do Lote</h3>
-            <button class="modal__close" id="batch-detail-close" onclick="window.app.batch.closeModal('batch-detail-modal')">
+            <button
+              class="modal__close"
+              id="batch-detail-close"
+              onclick="window.app.batch.closeModal('batch-detail-modal')"
+            >
               &times;
             </button>
           </div>
