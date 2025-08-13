@@ -170,6 +170,7 @@ export class Store {
   }
 
   async addOrder(orderData) {
+    const now = new Date().toISOString();
     const order = {
       id: orderData.id,
       customerName: orderData.customerName,
@@ -181,7 +182,8 @@ export class Store {
       internalTag: orderData.internalTag || "",
       batchCode: orderData.batchCode || "",
       notes: orderData.notes || "",
-      createdAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
 
     this.orders.push(order);
