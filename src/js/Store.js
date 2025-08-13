@@ -12,40 +12,6 @@ export class Store {
 
   async loadData() {
     try {
-      // Tentar carregar do Firebase primeiro
-      if (this.firebase.isInitialized) {
-        console.log("Tentando carregar dados do Firebase...");
-        const [orders, batches] = await Promise.all([
-          this.firebase.getOrders(),
-          this.firebase.getBatches()
-        ]);
-        
-        this.orders = orders || [];
-        this.batches = batches || [];
-        
-        // Migração: se um lote não tiver name, definir name = code
-        this.batches.forEach((batch) => {
-          if (!batch.name) {
-            batch.name = batch.code;
-          }
-        });
-        
-        // Calcular próximo número de lote
-        this.calculateNextBatchNumber();
-        
-        // Salvar no localStorage como backup
-        await this.saveData();
-        
-        this.isLoaded = true;
-        console.log("Dados carregados do Firebase:", { orders: this.orders.length, batches: this.batches.length });
-        return;
-      }
-    } catch (error) {
-      console.error("Erro ao carregar do Firebase, usando localStorage:", error);
-    }
-
-    // Fallback para localStorage
-    try {
       console.log("Carregando dados do localStorage...");
       const data = localStorage.getItem(this.storageKey);
       if (data) {
@@ -65,6 +31,11 @@ export class Store {
         
         this.isLoaded = true;
         console.log("Dados carregados do localStorage:", { orders: this.orders.length, batches: this.batches.length });
+        
+        // Tentar sincronizar com Firebase em background
+        if (this.firebase.isInitialized) {
+          this.syncToFirebaseInBackground();
+        }
       } else {
         this.isLoaded = true;
         console.log("Nenhum dado encontrado, iniciando com dados vazios");
@@ -92,6 +63,16 @@ export class Store {
       }
     } catch (error) {
       console.error("Erro ao salvar dados:", error);
+    }
+  }
+
+  async syncToFirebaseInBackground() {
+    try {
+      console.log("Sincronizando dados com Firebase em background...");
+      await this.firebase.syncToLocalStorage();
+      console.log("Sincronização com Firebase concluída");
+    } catch (error) {
+      console.error("Erro na sincronização com Firebase:", error);
     }
   }
 

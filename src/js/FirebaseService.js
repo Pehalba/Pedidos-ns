@@ -7,6 +7,14 @@ export class FirebaseService {
 
   init() {
     try {
+      // Verificar se o Firebase já foi inicializado
+      if (firebase.apps.length > 0) {
+        this.db = firebase.firestore();
+        this.isInitialized = true;
+        console.log("Firebase já inicializado, reutilizando conexão");
+        return;
+      }
+
       // Configuração do Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyAN5qBPlmVAEYzB1Z9lTdgTBcQpv7APtj8",
