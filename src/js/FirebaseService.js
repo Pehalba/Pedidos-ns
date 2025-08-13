@@ -55,13 +55,12 @@ export class FirebaseService {
 
   async addOrder(orderData) {
     if (!this.isInitialized) return null;
-    
     try {
       // Usar o ID do pedido como ID do documento
       await this.db.collection('orders').doc(orderData.id).set({
         ...orderData,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        createdAt: orderData.createdAt || new Date().toISOString(),
+        updatedAt: orderData.updatedAt || new Date().toISOString()
       });
       return orderData.id;
     } catch (error) {
@@ -72,11 +71,10 @@ export class FirebaseService {
 
   async updateOrder(orderId, orderData) {
     if (!this.isInitialized) return false;
-    
     try {
       await this.db.collection('orders').doc(orderId).update({
         ...orderData,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        updatedAt: orderData.updatedAt || new Date().toISOString()
       });
       return true;
     } catch (error) {
@@ -120,8 +118,8 @@ export class FirebaseService {
       // Usar o código do lote como ID do documento
       await this.db.collection('batches').doc(batchData.code).set({
         ...batchData,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        createdAt: batchData.createdAt || new Date().toISOString(),
+        updatedAt: batchData.updatedAt || new Date().toISOString()
       });
       return batchData.code;
     } catch (error) {
@@ -136,7 +134,7 @@ export class FirebaseService {
     try {
       await this.db.collection('batches').doc(batchCode).update({
         ...batchData,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        updatedAt: batchData.updatedAt || new Date().toISOString()
       });
       return true;
     } catch (error) {

@@ -255,6 +255,7 @@ export class Store {
 
   async addBatch(batchData) {
     const code = this.generateBatchCode();
+    const now = new Date().toISOString();
     const batch = {
       code,
       name: batchData.name,
@@ -262,7 +263,8 @@ export class Store {
       status: batchData.status || "CRIADO",
       notes: batchData.notes || "",
       orderIds: batchData.orderIds || [],
-      createdAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
 
     this.batches.push(batch);
