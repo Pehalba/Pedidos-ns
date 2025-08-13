@@ -764,16 +764,21 @@ body {
 
 .express-orders-list {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 15px;
+  max-width: 100%;
 }
 
 .express-order-card {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  padding: 20px;
+  padding: 15px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
 }
 
 .express-order-card:hover {
@@ -786,7 +791,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .express-order-card__id {
@@ -807,7 +812,8 @@ body {
 }
 
 .express-order-card__content {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+  flex: 1;
 }
 
 .express-order-card__product {
@@ -825,21 +831,21 @@ body {
 
 .express-order-card__details {
   display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
+  gap: 8px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
 }
 
 .express-order-card__detail {
   background: rgba(255, 255, 255, 0.1);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
   opacity: 0.9;
 }
 
 .express-order-card__status {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .express-order-card__payment {
@@ -912,6 +918,11 @@ body {
   .express-section__header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .express-orders-list {
+    grid-template-columns: 1fr;
     gap: 10px;
   }
   
