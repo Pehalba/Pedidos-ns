@@ -76,7 +76,7 @@ export class Order {
     document.getElementById("order-notes").value = order.notes || "";
   }
 
-  saveOrder() {
+  async saveOrder() {
     const formData = this.getFormData();
 
     if (!this.validateForm(formData)) {
@@ -86,7 +86,7 @@ export class Order {
     try {
       if (this.currentOrderId) {
         // Atualizar pedido existente
-        const updatedOrder = this.store.updateOrder(
+        const updatedOrder = await this.store.updateOrder(
           this.currentOrderId,
           formData
         );
@@ -99,7 +99,7 @@ export class Order {
         }
       } else {
         // Criar novo pedido
-        const newOrder = this.store.addOrder(formData);
+        const newOrder = await this.store.addOrder(formData);
         if (newOrder) {
           window.app.ui.showToast("Pedido criado com sucesso", "success");
           this.closeModal();
@@ -165,13 +165,13 @@ export class Order {
     return true;
   }
 
-  deleteOrder(orderId) {
+  async deleteOrder(orderId) {
     if (!confirm("Tem certeza que deseja excluir este pedido?")) {
       return;
     }
 
     try {
-      const success = this.store.deleteOrder(orderId);
+      const success = await this.store.deleteOrder(orderId);
       if (success) {
         window.app.ui.showToast("Pedido excluído com sucesso", "success");
         window.app.renderOrders();
@@ -199,7 +199,7 @@ export class Order {
     return this.store.getAvailableOrders();
   }
 
-  updateOrderShippingType(orderId, newShippingType) {
+  async updateOrderShippingType(orderId, newShippingType) {
     const order = this.store.getOrder(orderId);
     if (!order) return false;
 
@@ -208,7 +208,7 @@ export class Order {
       this.store.removeOrderFromBatch(orderId, order.batchCode);
     }
 
-    return this.store.updateOrder(orderId, { shippingType: newShippingType });
+    return await this.store.updateOrder(orderId, { shippingType: newShippingType });
   }
 
   // Métodos para busca e filtros

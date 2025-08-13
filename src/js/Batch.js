@@ -210,7 +210,7 @@ export class Batch {
     container.innerHTML = ordersHtml;
   }
 
-  saveBatch() {
+  async saveBatch() {
     console.log("saveBatch chamado");
     
     const nameInput = document.getElementById("batch-name");
@@ -234,24 +234,29 @@ export class Batch {
     console.log("Dados do lote:", batchData);
     console.log("currentBatchCode:", this.currentBatchCode);
 
-    if (this.currentBatchCode) {
-      // Editar lote existente
-      console.log("Editando lote existente");
-      this.store.updateBatch(this.currentBatchCode, batchData);
-      this.showToast("Lote atualizado com sucesso", "success");
-    } else {
-      // Criar novo lote
-      console.log("Criando novo lote");
-      const newBatch = this.store.addBatch(batchData);
-      console.log("Novo lote criado:", newBatch);
-      this.showToast("Lote criado com sucesso", "success");
-    }
+    try {
+      if (this.currentBatchCode) {
+        // Editar lote existente
+        console.log("Editando lote existente");
+        await this.store.updateBatch(this.currentBatchCode, batchData);
+        this.showToast("Lote atualizado com sucesso", "success");
+      } else {
+        // Criar novo lote
+        console.log("Criando novo lote");
+        const newBatch = await this.store.addBatch(batchData);
+        console.log("Novo lote criado:", newBatch);
+        this.showToast("Lote criado com sucesso", "success");
+      }
 
-    this.closeModal();
-    window.app.renderDashboard();
+      this.closeModal();
+      window.app.renderDashboard();
+    } catch (error) {
+      console.error("Erro ao salvar lote:", error);
+      this.showToast("Erro ao salvar lote", "error");
+    }
   }
 
-  deleteBatch(batchCode = null) {
+  async deleteBatch(batchCode = null) {
     const codeToDelete = batchCode || this.currentBatchCode;
     if (!codeToDelete) {
       console.error("Nenhum código de lote fornecido para exclusão");
@@ -259,15 +264,20 @@ export class Batch {
     }
 
     if (confirm("Tem certeza que deseja excluir este lote?")) {
-      this.store.deleteBatch(codeToDelete);
-      this.showToast("Lote excluído com sucesso", "success");
-      
-      // Se estamos em um modal, fechar
-      if (this.currentBatchCode) {
-        this.closeModal();
+      try {
+        await this.store.deleteBatch(codeToDelete);
+        this.showToast("Lote excluído com sucesso", "success");
+        
+        // Se estamos em um modal, fechar
+        if (this.currentBatchCode) {
+          this.closeModal();
+        }
+        
+        window.app.renderDashboard();
+      } catch (error) {
+        console.error("Erro ao excluir lote:", error);
+        this.showToast("Erro ao excluir lote", "error");
       }
-      
-      window.app.renderDashboard();
     }
   }
 
