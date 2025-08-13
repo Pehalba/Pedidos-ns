@@ -12,6 +12,40 @@ export class Store {
 
   async loadData() {
     try {
+      // Tentar carregar do Firebase primeiro
+      if (this.firebase.isInitialized) {
+        console.log("Tentando carregar dados do Firebase...");
+        try {
+          const [orders, batches] = await Promise.all([
+            this.firebase.getOrders(),
+            this.firebase.getBatches()
+          ]);
+          
+          this.orders = orders || [];
+          this.batches = batches || [];
+          
+          // Migração: se um lote não tiver name, definir name = code
+          this.batches.forEach((batch) => {
+            if (!batch.name) {
+              batch.name = batch.code;
+            }
+          });
+          
+          // Calcular próximo número de lote
+          this.calculateNextBatchNumber();
+          
+          // Salvar no localStorage como backup
+          await this.saveData();
+          
+          this.isLoaded = true;
+          console.log("Dados carregados do Firebase:", { orders: this.orders.length, batches: this.batches.length });
+          return;
+        } catch (firebaseError) {
+          console.error("Erro ao carregar do Firebase, usando localStorage:", firebaseError);
+        }
+      }
+
+      // Fallback para localStorage
       console.log("Carregando dados do localStorage...");
       const data = localStorage.getItem(this.storageKey);
       if (data) {
@@ -32,10 +66,10 @@ export class Store {
         this.isLoaded = true;
         console.log("Dados carregados do localStorage:", { orders: this.orders.length, batches: this.batches.length });
         
-        // Tentar sincronizar com Firebase em background (desabilitado temporariamente)
-        // if (this.firebase.isInitialized) {
-        //   this.syncToFirebaseInBackground();
-        // }
+        // Tentar sincronizar com Firebase em background
+        if (this.firebase.isInitialized) {
+          this.syncToFirebaseInBackground();
+        }
       } else {
         this.isLoaded = true;
         console.log("Nenhum dado encontrado, iniciando com dados vazios");
@@ -57,10 +91,10 @@ export class Store {
       };
       localStorage.setItem(this.storageKey, JSON.stringify(data));
       
-      // Sincronizar com Firebase se disponível (desabilitado temporariamente)
-      // if (this.firebase.isInitialized) {
-      //   await this.firebase.syncToLocalStorage();
-      // }
+      // Sincronizar com Firebase se disponível
+      if (this.firebase.isInitialized) {
+        await this.firebase.syncToLocalStorage();
+      }
     } catch (error) {
       console.error("Erro ao salvar dados:", error);
     }
@@ -138,10 +172,10 @@ export class Store {
 
     this.orders.push(order);
     
-    // Salvar no Firebase se disponível (desabilitado temporariamente)
-    // if (this.firebase.isInitialized) {
-    //   await this.firebase.addOrder(order);
-    // }
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.addOrder(order);
+    }
     
     await this.saveData();
     return order;
