@@ -150,15 +150,20 @@ body {
 /* Batches List */
 .batches-list {
   display: grid;
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: var(--spacing-lg);
+  max-width: 100%;
 }
 
 .batch-card {
   background-color: var(--color-white);
   border: 1px solid var(--color-gray-200);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
   transition: all var(--transition-fast);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
 }
 
 .batch-card:hover {
@@ -170,8 +175,8 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: var(--spacing-md);
-  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  gap: var(--spacing-sm);
 }
 
 .batch-card__info {
@@ -179,7 +184,7 @@ body {
 }
 
 .batch-card__title {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   color: var(--color-gray-900);
   margin: 0 0 var(--spacing-xs) 0;
@@ -196,7 +201,7 @@ body {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
 }
 
 .batch-card__tracking-text {
@@ -208,6 +213,10 @@ body {
   font-family: "Courier New", monospace;
   font-weight: var(--font-weight-medium);
   color: var(--color-primary);
+}
+
+.batch-card__status {
+  margin-bottom: var(--spacing-xs);
 }
 
 .batch-card__actions {
@@ -458,28 +467,29 @@ body {
 
 /* Batch Orders Preview */
 .batch-card__orders {
-  margin-top: var(--spacing-md);
-  padding-top: var(--spacing-md);
+  margin-top: auto;
+  padding-top: var(--spacing-sm);
   border-top: 1px solid var(--color-gray-200);
+  flex: 1;
 }
 
 .batch-card__orders-list {
-  margin-top: var(--spacing-sm);
+  margin-top: var(--spacing-xs);
 }
 
 .order-preview-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
   padding: var(--spacing-xs) 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
 }
 
 .order-preview-id {
   font-weight: var(--font-weight-medium);
   color: var(--color-gray-700);
   font-family: "Courier New", monospace;
-  min-width: 50px;
+  min-width: 40px;
 }
 
 .order-preview-product {
@@ -542,6 +552,16 @@ body {
 
   .status-card__count {
     font-size: var(--font-size-2xl);
+  }
+
+  .batches-list {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .batch-card {
+    min-height: auto;
+    padding: var(--spacing-lg);
   }
 
   .batch-card__header,
