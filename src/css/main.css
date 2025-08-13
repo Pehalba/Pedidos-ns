@@ -355,6 +355,30 @@ body {
   margin-top: var(--spacing-lg);
 }
 
+/* Demo Section */
+.demo-section {
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--color-blue-50);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-blue-200);
+}
+
+.demo-section h3 {
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-blue-700);
+}
+
+.demo-section p {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-blue-600);
+}
+
+.demo-section .text-muted {
+  margin-top: var(--spacing-sm);
+  color: var(--color-gray-500);
+}
+
 /* ===== UTILITIES ===== */
 .text-center {
   text-align: center;

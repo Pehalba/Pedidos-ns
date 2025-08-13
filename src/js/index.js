@@ -26,11 +26,6 @@ class App {
     // Carregar dados do localStorage
     this.store.loadData();
 
-    // Inicializar dados de demonstração se não existirem
-    if (this.store.getOrders().length === 0) {
-      this.createDemoData();
-    }
-
     // Configurar event listeners
     this.setupEventListeners();
 
@@ -71,6 +66,18 @@ class App {
     if (importBtn) {
       importBtn.addEventListener("click", () => {
         this.csvImport.importFile();
+      });
+    }
+
+    // Dados de Demonstração
+    const createDemoBtn = document.getElementById("create-demo-btn");
+    if (createDemoBtn) {
+      createDemoBtn.addEventListener("click", () => {
+        if (confirm("Isso irá criar dados de demonstração. Deseja continuar?")) {
+          this.createDemoData();
+          this.ui.showToast("Dados de demonstração criados com sucesso!", "success");
+          this.renderDashboard();
+        }
       });
     }
 
