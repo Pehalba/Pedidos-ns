@@ -44,7 +44,7 @@ export class FirebaseService {
     try {
       const snapshot = await this.db.collection('orders').get();
       return snapshot.docs.map(doc => ({
-        id: doc.id,
+        id: doc.id, // Agora doc.id é o ID do pedido
         ...doc.data()
       }));
     } catch (error) {
@@ -57,12 +57,13 @@ export class FirebaseService {
     if (!this.isInitialized) return null;
     
     try {
-      const docRef = await this.db.collection('orders').add({
+      // Usar o ID do pedido como ID do documento
+      await this.db.collection('orders').doc(orderData.id).set({
         ...orderData,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      return docRef.id;
+      return orderData.id;
     } catch (error) {
       console.error("Erro ao adicionar pedido:", error);
       return null;
@@ -103,7 +104,7 @@ export class FirebaseService {
     try {
       const snapshot = await this.db.collection('batches').get();
       return snapshot.docs.map(doc => ({
-        code: doc.id,
+        code: doc.id, // Agora doc.id é o código do lote
         ...doc.data()
       }));
     } catch (error) {
@@ -116,12 +117,13 @@ export class FirebaseService {
     if (!this.isInitialized) return null;
     
     try {
-      const docRef = await this.db.collection('batches').add({
+      // Usar o código do lote como ID do documento
+      await this.db.collection('batches').doc(batchData.code).set({
         ...batchData,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      return docRef.id;
+      return batchData.code;
     } catch (error) {
       console.error("Erro ao adicionar lote:", error);
       return null;
