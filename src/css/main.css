@@ -149,11 +149,8 @@ body {
 
 /* Batches Section Header */
 .batches-section-header {
-  margin: 30px 0 20px 0;
-  padding: 20px;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-radius: 12px;
-  border-left: 4px solid var(--primary-color);
+  margin: 0 0 20px 0;
+  padding: 0;
 }
 
 .batches-section-title {
@@ -175,7 +172,7 @@ body {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   border-radius: 12px;
   padding: 25px;
-  margin-bottom: 30px;
+  margin: 30px 0 30px 0;
   border-left: 4px solid var(--primary-color);
 }
 
@@ -921,8 +918,8 @@ body {
   }
 
   .batches-section-header {
-    margin: 20px 0 15px 0;
-    padding: 15px;
+    margin: 0 0 15px 0;
+    padding: 0;
   }
 
   .batches-section-title {
