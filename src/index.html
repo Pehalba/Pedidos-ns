@@ -3,10 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://firebase.googleapis.com; object-src 'none';" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://firebase.googleapis.com; object-src 'none';"
+    />
     <title>Consolidador de Pedidos</title>
 
     <!-- Vendor CSS -->
@@ -41,7 +47,7 @@
       <!-- Header -->
       <header class="header">
         <div class="header__container">
-          <h1 class="header__title">Consolidador de Pedidos</h1>
+          <h1 class="header__title">Gerenciador de Pedidos</h1>
           <nav class="header__nav">
             <button class="header__nav-btn" data-view="dashboard">
               Dashboard
@@ -50,9 +56,7 @@
             <button class="header__nav-btn" data-view="import">
               Importar CSV
             </button>
-            <button class="btn btn--secondary" id="auth-btn">
-              Entrar
-            </button>
+            <button class="btn btn--secondary" id="auth-btn">Entrar</button>
           </nav>
         </div>
       </header>
@@ -62,12 +66,29 @@
         <!-- Dashboard View -->
         <div id="dashboard-view" class="view active">
           <div class="content">
-            <div data-view-only style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 12px; border-radius: 6px; margin: 10px 0; text-align: center; font-size: 14px;">
-              🔒 <strong>Modo Visualização:</strong> Faça login para criar, editar ou excluir dados.
+            <div
+              data-view-only
+              style="
+                display: none;
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                color: #856404;
+                padding: 12px;
+                border-radius: 6px;
+                margin: 10px 0;
+                text-align: center;
+                font-size: 14px;
+              "
+            >
+              🔒 <strong>Modo Visualização</strong>
             </div>
             <div class="content__header">
               <h2 class="content__title">Dashboard de Lotes</h2>
-              <button class="btn btn--primary" id="new-batch-btn" data-requires-auth>
+              <button
+                class="btn btn--primary"
+                id="new-batch-btn"
+                data-requires-auth
+              >
                 Novo Lote
               </button>
             </div>
@@ -108,11 +129,16 @@
             <!-- Express Orders Section -->
             <div class="express-section">
               <div class="express-section__header">
-                <h3 class="express-section__title">🚀 Pedidos Expresso (Envios Rápidos)</h3>
+                <h3 class="express-section__title">
+                  🚀 Pedidos Expresso (Envios Rápidos)
+                </h3>
                 <span class="express-section__count" id="express-count">0</span>
               </div>
               <div class="express-section__description">
-                <p>Pedidos com frete expresso que precisam de atenção prioritária:</p>
+                <p>
+                  Pedidos com frete expresso que precisam de atenção
+                  prioritária:
+                </p>
               </div>
               <div id="express-orders-list" class="express-orders-list"></div>
             </div>
@@ -122,12 +148,30 @@
         <!-- Orders View -->
         <div id="orders-view" class="view">
           <div class="content">
-            <div data-view-only style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 12px; border-radius: 6px; margin: 10px 0; text-align: center; font-size: 14px;">
-              🔒 <strong>Modo Visualização:</strong> Faça login para criar, editar ou excluir dados.
+            <div
+              data-view-only
+              style="
+                display: none;
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                color: #856404;
+                padding: 12px;
+                border-radius: 6px;
+                margin: 10px 0;
+                text-align: center;
+                font-size: 14px;
+              "
+            >
+              🔒 <strong>Modo Visualização:</strong> Faça login para criar,
+              editar ou excluir dados.
             </div>
             <div class="content__header">
               <h2 class="content__title">Gerenciar Pedidos</h2>
-              <button class="btn btn--primary" id="new-order-btn" data-requires-auth>
+              <button
+                class="btn btn--primary"
+                id="new-order-btn"
+                data-requires-auth
+              >
                 Novo Pedido
               </button>
             </div>
@@ -175,13 +219,16 @@
             <!-- Dados de Demonstração -->
             <div class="demo-section">
               <h3>Dados de Demonstração</h3>
-              <p>Use esta opção para criar dados de exemplo e testar o sistema:</p>
+              <p>
+                Use esta opção para criar dados de exemplo e testar o sistema:
+              </p>
               <button class="btn btn--secondary" id="create-demo-btn">
                 Criar Dados de Demonstração
               </button>
               <p class="text-muted">
                 <small>
-                  Isso criará 10 pedidos (6 PADRÃO + 4 EXPRESSO) e 1 lote de demonstração.
+                  Isso criará 10 pedidos (6 PADRÃO + 4 EXPRESSO) e 1 lote de
+                  demonstração.
                 </small>
               </p>
             </div>
@@ -189,8 +236,11 @@
             <!-- Backup e Restauração -->
             <div class="backup-section">
               <h3>Backup e Restauração</h3>
-              <p>Exporte seus dados para usar em outros dispositivos ou faça backup:</p>
-              
+              <p>
+                Exporte seus dados para usar em outros dispositivos ou faça
+                backup:
+              </p>
+
               <div class="backup-actions">
                 <button class="btn btn--primary" id="export-data-btn">
                   📤 Exportar Dados
@@ -198,16 +248,25 @@
                 <button class="btn btn--secondary" id="import-data-btn">
                   📥 Importar Dados
                 </button>
-                <input type="file" id="backup-file" accept=".json" class="input" style="display: none;" />
+                <input
+                  type="file"
+                  id="backup-file"
+                  accept=".json"
+                  class="input"
+                  style="display: none"
+                />
               </div>
-              
+
               <div class="backup-info">
                 <p class="text-muted">
                   <small>
-                    <strong>Como usar:</strong><br>
-                    1. Clique em "Exportar Dados" para baixar um arquivo com todos os seus dados<br>
-                    2. Salve o arquivo no Google Drive, Dropbox ou envie por email<br>
-                    3. Em outro dispositivo, clique em "Importar Dados" e selecione o arquivo
+                    <strong>Como usar:</strong><br />
+                    1. Clique em "Exportar Dados" para baixar um arquivo com
+                    todos os seus dados<br />
+                    2. Salve o arquivo no Google Drive, Dropbox ou envie por
+                    email<br />
+                    3. Em outro dispositivo, clique em "Importar Dados" e
+                    selecione o arquivo
                   </small>
                 </p>
               </div>
@@ -382,20 +441,84 @@
     </div>
 
     <!-- Login Modal -->
-    <div id="login-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 1001; min-width: 300px;">
-      <h3 style="margin: 0 0 20px 0; text-align: center;">🔐 Autenticação</h3>
-      <form id="login-form" onsubmit="event.preventDefault(); window.app.auth.handleLoginAttempt();">
-        <div style="margin-bottom: 15px;">
-          <label for="login-username" style="display: block; margin-bottom: 5px; font-weight: 500;">Usuário</label>
-          <input type="text" id="login-username" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" placeholder="Digite seu usuário" required />
+    <div
+      id="login-modal"
+      style="
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        z-index: 1001;
+        min-width: 300px;
+      "
+    >
+      <h3 style="margin: 0 0 20px 0; text-align: center">🔐 Autenticação</h3>
+      <form
+        id="login-form"
+        onsubmit="event.preventDefault(); window.app.auth.handleLoginAttempt();"
+      >
+        <div style="margin-bottom: 15px">
+          <label
+            for="login-username"
+            style="display: block; margin-bottom: 5px; font-weight: 500"
+            >Usuário</label
+          >
+          <input
+            type="text"
+            id="login-username"
+            style="
+              width: 100%;
+              padding: 10px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              box-sizing: border-box;
+            "
+            placeholder="Digite seu usuário"
+            required
+          />
         </div>
-        <div style="margin-bottom: 15px;">
-          <label for="login-password" style="display: block; margin-bottom: 5px; font-weight: 500;">Senha</label>
-          <input type="password" id="login-password" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" placeholder="Digite sua senha" required />
+        <div style="margin-bottom: 15px">
+          <label
+            for="login-password"
+            style="display: block; margin-bottom: 5px; font-weight: 500"
+            >Senha</label
+          >
+          <input
+            type="password"
+            id="login-password"
+            style="
+              width: 100%;
+              padding: 10px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              box-sizing: border-box;
+            "
+            placeholder="Digite sua senha"
+            required
+          />
         </div>
-        <div id="login-error" style="color: #dc3545; font-size: 14px; margin-bottom: 15px; display: none;"></div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button type="button" class="btn btn--secondary" onclick="window.app.auth.hideLoginModal()">Cancelar</button>
+        <div
+          id="login-error"
+          style="
+            color: #dc3545;
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: none;
+          "
+        ></div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end">
+          <button
+            type="button"
+            class="btn btn--secondary"
+            onclick="window.app.auth.hideLoginModal()"
+          >
+            Cancelar
+          </button>
           <button type="submit" class="btn btn--primary">Entrar</button>
         </div>
       </form>
