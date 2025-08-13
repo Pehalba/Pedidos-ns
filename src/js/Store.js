@@ -96,7 +96,7 @@ export class Store {
       };
       localStorage.setItem(this.storageKey, JSON.stringify(data));
       
-      // Sincronizar com Firebase se disponível
+      // Sincronizar com Firebase se disponível (apenas para garantir)
       if (this.firebase.isInitialized) {
         await this.firebase.syncToLocalStorage();
       }
@@ -241,7 +241,7 @@ export class Store {
     return this.batches.find((batch) => batch.code === code);
   }
 
-  addBatch(batchData) {
+  async addBatch(batchData) {
     const code = this.generateBatchCode();
     const batch = {
       code,
@@ -255,7 +255,13 @@ export class Store {
 
     this.batches.push(batch);
     this.nextBatchNumber++;
-    this.saveData();
+    
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.addBatch(batch);
+    }
+    
+    await this.saveData();
 
     // Associar pedidos ao lote
     if (batch.orderIds.length > 0) {
