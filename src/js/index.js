@@ -22,9 +22,9 @@ class App {
     this.init();
   }
 
-  init() {
-    // Carregar dados do localStorage
-    this.store.loadData();
+  async init() {
+    // Carregar dados do localStorage/Firebase
+    await this.store.loadData();
 
     // Configurar event listeners
     this.setupEventListeners();

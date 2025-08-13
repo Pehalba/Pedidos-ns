@@ -7,19 +7,21 @@ export class Store {
     this.batches = [];
     this.nextBatchNumber = 1;
     this.firebase = new FirebaseService();
+    this.isLoaded = false;
   }
 
   async loadData() {
     try {
       // Tentar carregar do Firebase primeiro
       if (this.firebase.isInitialized) {
+        console.log("Tentando carregar dados do Firebase...");
         const [orders, batches] = await Promise.all([
           this.firebase.getOrders(),
           this.firebase.getBatches()
         ]);
         
-        this.orders = orders;
-        this.batches = batches;
+        this.orders = orders || [];
+        this.batches = batches || [];
         
         // Migração: se um lote não tiver name, definir name = code
         this.batches.forEach((batch) => {
@@ -32,9 +34,10 @@ export class Store {
         this.calculateNextBatchNumber();
         
         // Salvar no localStorage como backup
-        this.saveData();
+        await this.saveData();
         
-        console.log("Dados carregados do Firebase");
+        this.isLoaded = true;
+        console.log("Dados carregados do Firebase:", { orders: this.orders.length, batches: this.batches.length });
         return;
       }
     } catch (error) {
@@ -43,6 +46,7 @@ export class Store {
 
     // Fallback para localStorage
     try {
+      console.log("Carregando dados do localStorage...");
       const data = localStorage.getItem(this.storageKey);
       if (data) {
         const parsed = JSON.parse(data);
@@ -58,11 +62,18 @@ export class Store {
 
         // Calcular próximo número de lote
         this.calculateNextBatchNumber();
+        
+        this.isLoaded = true;
+        console.log("Dados carregados do localStorage:", { orders: this.orders.length, batches: this.batches.length });
+      } else {
+        this.isLoaded = true;
+        console.log("Nenhum dado encontrado, iniciando com dados vazios");
       }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       this.orders = [];
       this.batches = [];
+      this.isLoaded = true;
     }
   }
 

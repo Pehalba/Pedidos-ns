@@ -155,8 +155,12 @@ export class FirebaseService {
       const orders = await this.getOrders();
       const batches = await this.getBatches();
       
-      localStorage.setItem('orders', JSON.stringify(orders));
-      localStorage.setItem('batches', JSON.stringify(batches));
+      // Usar a mesma chave que o Store usa
+      const data = {
+        orders: orders,
+        batches: batches,
+      };
+      localStorage.setItem('consolidador:v1', JSON.stringify(data));
       
       console.log("Dados sincronizados com localStorage");
     } catch (error) {
@@ -168,8 +172,9 @@ export class FirebaseService {
     if (!this.isInitialized) return;
     
     try {
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-      const batches = JSON.parse(localStorage.getItem('batches') || '[]');
+      const data = JSON.parse(localStorage.getItem('consolidador:v1') || '{}');
+      const orders = data.orders || [];
+      const batches = data.batches || [];
       
       // Sincronizar pedidos
       for (const order of orders) {
