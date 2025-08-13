@@ -313,18 +313,18 @@ export class UI {
             </span>
           </div>
           
-          <div class="express-order-card__actions">
-            <button class="btn btn--small" onclick="window.app.order.openEditModal('${
-              order.id
-            }')">
-              ✏️ Editar
-            </button>
-            <button class="btn btn--small btn--danger" onclick="window.app.order.deleteOrder('${
-              order.id
-            }')">
-              🗑️ Excluir
-            </button>
-          </div>
+                         <div class="express-order-card__actions">
+                 <button class="btn btn--small" data-requires-auth onclick="window.app.order.openEditModal('${
+                   order.id
+                 }')">
+                   ✏️ Editar
+                 </button>
+                 <button class="btn btn--small btn--danger" data-requires-auth onclick="window.app.order.deleteOrder('${
+                   order.id
+                 }')">
+                   🗑️ Excluir
+                 </button>
+               </div>
         </div>
       `
       )
