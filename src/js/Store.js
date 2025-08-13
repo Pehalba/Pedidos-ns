@@ -10,8 +10,24 @@ export class Store {
     this.isLoaded = false;
   }
 
+  showLoading() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+      loadingOverlay.classList.remove('hidden');
+    }
+  }
+
+  hideLoading() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+    }
+  }
+
   async loadData() {
     try {
+      this.showLoading();
+      
       // Aguardar um pouco para o Firebase inicializar completamente
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -42,6 +58,7 @@ export class Store {
           
           this.isLoaded = true;
           console.log("Dados carregados do Firebase:", { orders: this.orders.length, batches: this.batches.length });
+          this.hideLoading();
           return;
         } catch (firebaseError) {
           console.error("Erro ao carregar do Firebase, usando localStorage:", firebaseError);
@@ -79,11 +96,14 @@ export class Store {
         this.isLoaded = true;
         console.log("Nenhum dado encontrado, iniciando com dados vazios");
       }
+      
+      this.hideLoading();
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       this.orders = [];
       this.batches = [];
       this.isLoaded = true;
+      this.hideLoading();
     }
   }
 
