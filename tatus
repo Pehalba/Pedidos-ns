@@ -1,0 +1,5 @@
+[33m01a19f6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Adicionar botão de copiar mensagem para cliente com design mascarado
+[33m3783ddf[m Integrar título e descrição dos lotes dentro do container unificado
+[33mf2c6a99[m Reorganizar seção de lotes: mover explicação para cima e criar container unificado com fundo
+[33med00d40[m Adicionar seção explicativa sobre Lotes no dashboard
+[33mf5c8266[m Atualizar CSS com variáveis e estilos completos do sistema
