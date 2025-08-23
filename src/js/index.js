@@ -160,6 +160,14 @@ class App {
       });
     }
 
+    // Botão de copiar mensagem do cliente
+    const copyMessageBtn = document.getElementById("copy-message-btn");
+    if (copyMessageBtn) {
+      copyMessageBtn.addEventListener("click", () => {
+        this.copyCustomerMessage();
+      });
+    }
+
     // Atalho de busca no detalhe do lote
     document.addEventListener("keydown", (e) => {
       if (e.key === "/" && this.currentView === "batch-detail") {
@@ -543,6 +551,61 @@ class App {
     };
     
     reader.readAsText(file);
+  }
+
+  copyCustomerMessage() {
+    const messageText = document.getElementById("customer-message-text");
+    const copyBtn = document.getElementById("copy-message-btn");
+    
+    if (messageText && copyBtn) {
+      const textToCopy = messageText.textContent.trim();
+      
+      // Usar a API moderna de clipboard
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          this.showCopySuccess(copyBtn);
+        }).catch(() => {
+          this.fallbackCopyTextToClipboard(textToCopy, copyBtn);
+        });
+      } else {
+        this.fallbackCopyTextToClipboard(textToCopy, copyBtn);
+      }
+    }
+  }
+
+  showCopySuccess(copyBtn) {
+    const originalText = copyBtn.textContent;
+    copyBtn.textContent = "✅ Copiado!";
+    copyBtn.classList.add("copied");
+    
+    setTimeout(() => {
+      copyBtn.textContent = originalText;
+      copyBtn.classList.remove("copied");
+    }, 2000);
+  }
+
+  fallbackCopyTextToClipboard(text, copyBtn) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const successful = document.execCommand("copy");
+      if (successful) {
+        this.showCopySuccess(copyBtn);
+      } else {
+        this.ui.showToast("Erro ao copiar texto", "error");
+      }
+    } catch (err) {
+      this.ui.showToast("Erro ao copiar texto", "error");
+    }
+    
+    document.body.removeChild(textArea);
   }
 }
 

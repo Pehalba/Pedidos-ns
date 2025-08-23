@@ -167,6 +167,68 @@ body {
   line-height: 1.5;
 }
 
+/* Customer Message Container */
+.customer-message-container {
+  margin-top: 15px;
+  padding: 12px;
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+}
+
+.customer-message-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.customer-message-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.customer-message-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  flex: 1;
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.copy-btn {
+  white-space: nowrap;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+.copy-btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+.copy-btn.copied {
+  background: var(--success-color);
+  animation: pulse-success 0.6s ease;
+}
+
+@keyframes pulse-success {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
 /* Batches Container */
 .batches-container {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -928,6 +990,27 @@ body {
 
   .batches-section-description {
     font-size: 0.9rem;
+  }
+
+  .customer-message-container {
+    margin-top: 12px;
+    padding: 10px;
+  }
+
+  .customer-message-wrapper {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .customer-message-text {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+  }
+
+  .copy-btn {
+    align-self: flex-end;
+    font-size: 0.75rem;
+    padding: 5px 10px;
   }
 
   .batches-container {
