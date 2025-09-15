@@ -586,6 +586,8 @@ export class Store {
   checkDataIntegrity() {
     console.log("=== VERIFICAÇÃO DE INTEGRIDADE ===");
     
+    let errorsFound = 0;
+    
     // Verificar se todos os pedidos em lotes têm batchCode correto
     this.batches.forEach(batch => {
       console.log(`Lote ${batch.code}: ${batch.orderIds.length} pedidos`);
@@ -594,8 +596,10 @@ export class Store {
         const order = this.getOrder(orderId);
         if (!order) {
           console.error(`ERRO: Pedido ${orderId} não encontrado!`);
+          errorsFound++;
         } else if (order.batchCode !== batch.code) {
           console.error(`ERRO: Pedido ${orderId} está no lote ${batch.code} mas tem batchCode = "${order.batchCode}"`);
+          errorsFound++;
         }
       });
     });
@@ -606,12 +610,88 @@ export class Store {
       const batch = this.getBatch(order.batchCode);
       if (!batch) {
         console.error(`ERRO: Pedido ${order.id} tem batchCode "${order.batchCode}" mas lote não existe!`);
+        errorsFound++;
       } else if (!batch.orderIds.includes(order.id)) {
         console.error(`ERRO: Pedido ${order.id} tem batchCode "${order.batchCode}" mas não está na lista do lote!`);
+        errorsFound++;
       }
     });
 
-    console.log("=== FIM VERIFICAÇÃO DE INTEGRIDADE ===");
+    console.log(`=== FIM VERIFICAÇÃO DE INTEGRIDADE - ${errorsFound} erros encontrados ===`);
+    
+    // Se há erros, oferecer reparo automático
+    if (errorsFound > 0) {
+      console.log("⚠️ Inconsistências detectadas! Executando reparo automático...");
+      this.repairDataIntegrity();
+    }
+  }
+
+  // Método para reparar integridade dos dados
+  async repairDataIntegrity() {
+    console.log("=== INICIANDO REPARO DE INTEGRIDADE ===");
+    
+    let repairsMade = 0;
+    
+    // 1. Limpar batchCode de todos os pedidos primeiro
+    this.orders.forEach(order => {
+      if (order.batchCode) {
+        delete order.batchCode;
+        delete order.internalTag;
+        repairsMade++;
+      }
+    });
+    
+    // 2. Reassociar pedidos aos lotes baseado nas listas dos lotes
+    this.batches.forEach(batch => {
+      batch.orderIds.forEach(orderId => {
+        const order = this.getOrder(orderId);
+        if (order) {
+          order.batchCode = batch.code;
+          order.internalTag = this.generateInternalTag(order.productName, order.id);
+          repairsMade++;
+        }
+      });
+    });
+    
+    // 3. Remover pedidos inexistentes das listas dos lotes
+    this.batches.forEach(batch => {
+      const validOrderIds = batch.orderIds.filter(orderId => this.getOrder(orderId));
+      if (validOrderIds.length !== batch.orderIds.length) {
+        console.log(`Lote ${batch.code}: removendo ${batch.orderIds.length - validOrderIds.length} pedidos inexistentes`);
+        batch.orderIds = validOrderIds;
+        repairsMade++;
+      }
+    });
+    
+    console.log(`=== REPARO CONCLUÍDO - ${repairsMade} correções realizadas ===`);
+    
+    // 4. Salvar as correções
+    if (repairsMade > 0) {
+      console.log("Salvando correções...");
+      
+      // Salvar no Firebase se disponível
+      if (this.firebase.isInitialized) {
+        try {
+          // Atualizar todos os pedidos no Firebase
+          for (const order of this.orders) {
+            await this.firebase.updateOrder(order.id, order);
+          }
+          
+          // Atualizar todos os lotes no Firebase
+          for (const batch of this.batches) {
+            await this.firebase.updateBatch(batch.code, batch);
+          }
+          
+          console.log("Correções salvas no Firebase com sucesso!");
+        } catch (error) {
+          console.error("Erro ao salvar correções no Firebase:", error);
+        }
+      }
+      
+      // Salvar no localStorage
+      await this.saveData();
+      console.log("Correções salvas no localStorage!");
+    }
   }
 
   getOrdersInBatch(batchCode) {
