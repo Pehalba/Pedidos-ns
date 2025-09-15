@@ -232,8 +232,8 @@ export class Store {
     // Se mudou para EXPRESSO e estava em um lote, desassociar
     if (newOrder.shippingType === "EXPRESSO" && oldOrder.batchCode) {
       this.removeOrderFromBatch(oldOrder.id, oldOrder.batchCode);
-      newOrder.batchCode = "";
-      newOrder.internalTag = "";
+      delete newOrder.batchCode;
+      delete newOrder.internalTag;
     }
 
     this.orders[orderIndex] = newOrder;
@@ -327,8 +327,8 @@ export class Store {
       oldBatch.orderIds.forEach((orderId) => {
         const order = this.getOrder(orderId);
         if (order) {
-          order.batchCode = "";
-          order.internalTag = "";
+          delete order.batchCode;
+          delete order.internalTag;
         }
       });
 
@@ -357,8 +357,8 @@ export class Store {
     batch.orderIds.forEach((orderId) => {
       const order = this.getOrder(orderId);
       if (order) {
-        order.batchCode = "";
-        order.internalTag = "";
+        delete order.batchCode;
+        delete order.internalTag;
       }
     });
 
@@ -440,12 +440,21 @@ export class Store {
   }
 
   getAvailableOrders() {
-    return this.orders.filter(
+    const available = this.orders.filter(
       (order) =>
         order.shippingType === "PADRAO" &&
         order.paymentStatus === "PAGO" &&
         !order.batchCode
     );
+    
+    // Debug: verificar pedidos com batchCode
+    const ordersWithBatch = this.orders.filter(order => order.batchCode);
+    if (ordersWithBatch.length > 0) {
+      console.log("Pedidos já em lotes:", ordersWithBatch.map(o => ({id: o.id, batchCode: o.batchCode})));
+    }
+    
+    console.log(`Pedidos disponíveis para lotes: ${available.length} de ${this.orders.length}`);
+    return available;
   }
 
   getOrdersInBatch(batchCode) {
