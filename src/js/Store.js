@@ -324,7 +324,10 @@ export class Store {
       JSON.stringify(newBatch.orderIds) !== JSON.stringify(oldBatch.orderIds)
     ) {
       // Remover associações antigas
-      oldBatch.orderIds.forEach((orderId) => {
+      const removedOrderIds = oldBatch.orderIds.filter(id => !newBatch.orderIds.includes(id));
+      
+      // Atualizar pedidos removidos localmente
+      removedOrderIds.forEach((orderId) => {
         const order = this.getOrder(orderId);
         if (order) {
           delete order.batchCode;
@@ -332,9 +335,24 @@ export class Store {
         }
       });
 
+      // Atualizar pedidos removidos no Firebase
+      if (this.firebase.isInitialized && removedOrderIds.length > 0) {
+        try {
+          for (const orderId of removedOrderIds) {
+            const order = this.getOrder(orderId);
+            if (order) {
+              await this.firebase.updateOrder(orderId, order);
+            }
+          }
+          console.log(`Pedidos removidos do lote ${code} atualizados no Firebase`);
+        } catch (error) {
+          console.error("Erro ao atualizar pedidos removidos no Firebase:", error);
+        }
+      }
+
       // Adicionar novas associações
       if (newBatch.orderIds.length > 0) {
-        this.associateOrdersToBatch(newBatch.orderIds, code);
+        await this.associateOrdersToBatch(newBatch.orderIds, code);
       }
     }
 
@@ -354,13 +372,30 @@ export class Store {
     if (!batch) return false;
 
     // Desassociar todos os pedidos do lote
-    batch.orderIds.forEach((orderId) => {
+    const orderIdsToUpdate = [...batch.orderIds]; // Copiar array
+    
+    orderIdsToUpdate.forEach((orderId) => {
       const order = this.getOrder(orderId);
       if (order) {
         delete order.batchCode;
         delete order.internalTag;
       }
     });
+
+    // Atualizar pedidos desassociados no Firebase
+    if (this.firebase.isInitialized && orderIdsToUpdate.length > 0) {
+      try {
+        for (const orderId of orderIdsToUpdate) {
+          const order = this.getOrder(orderId);
+          if (order) {
+            await this.firebase.updateOrder(orderId, order);
+          }
+        }
+        console.log(`Pedidos desassociados do lote ${code} atualizados no Firebase`);
+      } catch (error) {
+        console.error("Erro ao atualizar pedidos desassociados no Firebase:", error);
+      }
+    }
 
     this.batches = this.batches.filter((batch) => batch.code !== code);
     
@@ -403,10 +438,11 @@ export class Store {
     return batch;
   }
 
-  associateOrdersToBatch(orderIds, batchCode) {
+  async associateOrdersToBatch(orderIds, batchCode) {
     const batch = this.getBatch(batchCode);
     if (!batch) return;
 
+    // Atualizar pedidos localmente
     orderIds.forEach((orderId) => {
       const order = this.getOrder(orderId);
       if (order && order.shippingType === "PADRAO") {
@@ -418,7 +454,23 @@ export class Store {
       }
     });
 
-    this.saveData();
+    // Salvar alterações no Firebase
+    if (this.firebase.isInitialized) {
+      try {
+        // Atualizar cada pedido no Firebase
+        for (const orderId of orderIds) {
+          const order = this.getOrder(orderId);
+          if (order) {
+            await this.firebase.updateOrder(orderId, order);
+          }
+        }
+        console.log(`Pedidos associados ao lote ${batchCode} atualizados no Firebase`);
+      } catch (error) {
+        console.error("Erro ao atualizar pedidos no Firebase:", error);
+      }
+    }
+
+    await this.saveData();
   }
 
   removeOrderFromBatch(orderId, batchCode) {
@@ -455,6 +507,24 @@ export class Store {
     
     console.log(`Pedidos disponíveis para lotes: ${available.length} de ${this.orders.length}`);
     return available;
+  }
+
+  // Método para forçar sincronização e recarregar dados
+  async forceSyncAndReload() {
+    console.log("Forçando sincronização e recarregamento de dados...");
+    
+    // Limpar dados locais
+    this.orders = [];
+    this.batches = [];
+    this.isLoaded = false;
+    
+    // Recarregar dados
+    await this.loadData();
+    
+    console.log("Sincronização concluída. Dados recarregados:", {
+      orders: this.orders.length,
+      batches: this.batches.length
+    });
   }
 
   getOrdersInBatch(batchCode) {
