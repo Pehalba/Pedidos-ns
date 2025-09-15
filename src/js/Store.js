@@ -11,57 +11,79 @@ export class Store {
   }
 
   showLoading() {
-    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingOverlay = document.getElementById("loading-overlay");
     if (loadingOverlay) {
-      loadingOverlay.classList.remove('hidden');
+      loadingOverlay.classList.remove("hidden");
     }
   }
 
   hideLoading() {
-    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingOverlay = document.getElementById("loading-overlay");
     if (loadingOverlay) {
-      loadingOverlay.classList.add('hidden');
+      loadingOverlay.classList.add("hidden");
     }
   }
 
   async loadData() {
     try {
       this.showLoading();
-      
+
       // Aguardar um pouco para o Firebase inicializar completamente
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // Tentar carregar do Firebase primeiro
       if (this.firebase.isInitialized) {
         console.log("Tentando carregar dados do Firebase...");
         try {
           const orders = await this.firebase.getOrders();
           const batches = await this.firebase.getBatches();
-          
-          console.log("Dados recebidos do Firebase:", { orders: orders?.length || 0, batches: batches?.length || 0 });
-          
+
+          console.log("Dados recebidos do Firebase:", {
+            orders: orders?.length || 0,
+            batches: batches?.length || 0,
+          });
+
           this.orders = orders || [];
           this.batches = batches || [];
+
+          // Debug: verificar dados carregados do Firebase
+          console.log("=== DEBUG loadData Firebase ===");
+          console.log("Pedidos carregados do Firebase:", this.orders.length);
+          console.log("Lotes carregados do Firebase:", this.batches.length);
           
+          // Verificar pedidos com batchCode
+          const ordersWithBatch = this.orders.filter(order => order.batchCode);
+          if (ordersWithBatch.length > 0) {
+            console.log("Pedidos com batchCode carregados do Firebase:", 
+              ordersWithBatch.map(o => ({id: o.id, batchCode: o.batchCode})));
+          }
+          console.log("=== FIM DEBUG loadData Firebase ===");
+
           // Migração: se um lote não tiver name, definir name = code
           this.batches.forEach((batch) => {
             if (!batch.name) {
               batch.name = batch.code;
             }
           });
-          
+
           // Calcular próximo número de lote
           this.calculateNextBatchNumber();
-          
+
           // Salvar no localStorage como backup
           await this.saveData();
-          
+
           this.isLoaded = true;
-          console.log("Dados carregados do Firebase:", { orders: this.orders.length, batches: this.batches.length });
+          console.log("Dados carregados do Firebase:", {
+            orders: this.orders.length,
+            batches: this.batches.length,
+          });
           this.hideLoading();
           return;
         } catch (firebaseError) {
-          console.error("Erro ao carregar do Firebase, usando localStorage:", firebaseError);
+          console.error(
+            "Erro ao carregar do Firebase, usando localStorage:",
+            firebaseError
+          );
         }
       } else {
         console.log("Firebase não inicializado, usando localStorage");
@@ -84,10 +106,13 @@ export class Store {
 
         // Calcular próximo número de lote
         this.calculateNextBatchNumber();
-        
+
         this.isLoaded = true;
-        console.log("Dados carregados do localStorage:", { orders: this.orders.length, batches: this.batches.length });
-        
+        console.log("Dados carregados do localStorage:", {
+          orders: this.orders.length,
+          batches: this.batches.length,
+        });
+
         // Tentar sincronizar com Firebase em background
         if (this.firebase.isInitialized) {
           this.syncToFirebaseInBackground();
@@ -96,7 +121,7 @@ export class Store {
         this.isLoaded = true;
         console.log("Nenhum dado encontrado, iniciando com dados vazios");
       }
-      
+
       this.hideLoading();
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -115,7 +140,7 @@ export class Store {
         batches: this.batches,
       };
       localStorage.setItem(this.storageKey, JSON.stringify(data));
-      
+
       // Sincronizar com Firebase se disponível
       if (this.firebase.isInitialized) {
         await this.firebase.syncToLocalStorage();
@@ -128,16 +153,16 @@ export class Store {
   async syncToFirebaseInBackground() {
     try {
       console.log("Sincronizando dados com Firebase em background...");
-      
+
       // Enviar dados atuais para o Firebase
       for (const order of this.orders) {
         await this.firebase.addOrder(order);
       }
-      
+
       for (const batch of this.batches) {
         await this.firebase.addBatch(batch);
       }
-      
+
       console.log("Sincronização com Firebase concluída");
     } catch (error) {
       console.error("Erro na sincronização com Firebase:", error);
@@ -207,12 +232,12 @@ export class Store {
     };
 
     this.orders.push(order);
-    
+
     // Salvar no Firebase se disponível
     if (this.firebase.isInitialized) {
       await this.firebase.addOrder(order);
     }
-    
+
     await this.saveData();
     return order;
   }
@@ -237,12 +262,12 @@ export class Store {
     }
 
     this.orders[orderIndex] = newOrder;
-    
+
     // Salvar no Firebase se disponível
     if (this.firebase.isInitialized) {
       await this.firebase.updateOrder(id, newOrder);
     }
-    
+
     await this.saveData();
     return newOrder;
   }
@@ -257,12 +282,12 @@ export class Store {
     }
 
     this.orders = this.orders.filter((order) => order.id !== id);
-    
+
     // Deletar do Firebase se disponível
     if (this.firebase.isInitialized) {
       await this.firebase.deleteOrder(id);
     }
-    
+
     await this.saveData();
     return true;
   }
@@ -291,12 +316,12 @@ export class Store {
 
     this.batches.push(batch);
     this.nextBatchNumber++;
-    
+
     // Salvar no Firebase se disponível
     if (this.firebase.isInitialized) {
       await this.firebase.addBatch(batch);
     }
-    
+
     await this.saveData();
 
     // Associar pedidos ao lote
@@ -324,8 +349,10 @@ export class Store {
       JSON.stringify(newBatch.orderIds) !== JSON.stringify(oldBatch.orderIds)
     ) {
       // Remover associações antigas
-      const removedOrderIds = oldBatch.orderIds.filter(id => !newBatch.orderIds.includes(id));
-      
+      const removedOrderIds = oldBatch.orderIds.filter(
+        (id) => !newBatch.orderIds.includes(id)
+      );
+
       // Atualizar pedidos removidos localmente
       removedOrderIds.forEach((orderId) => {
         const order = this.getOrder(orderId);
@@ -344,9 +371,14 @@ export class Store {
               await this.firebase.updateOrder(orderId, order);
             }
           }
-          console.log(`Pedidos removidos do lote ${code} atualizados no Firebase`);
+          console.log(
+            `Pedidos removidos do lote ${code} atualizados no Firebase`
+          );
         } catch (error) {
-          console.error("Erro ao atualizar pedidos removidos no Firebase:", error);
+          console.error(
+            "Erro ao atualizar pedidos removidos no Firebase:",
+            error
+          );
         }
       }
 
@@ -357,12 +389,12 @@ export class Store {
     }
 
     this.batches[batchIndex] = newBatch;
-    
+
     // Salvar no Firebase se disponível
     if (this.firebase.isInitialized) {
       await this.firebase.updateBatch(code, newBatch);
     }
-    
+
     await this.saveData();
     return newBatch;
   }
@@ -373,7 +405,7 @@ export class Store {
 
     // Desassociar todos os pedidos do lote
     const orderIdsToUpdate = [...batch.orderIds]; // Copiar array
-    
+
     orderIdsToUpdate.forEach((orderId) => {
       const order = this.getOrder(orderId);
       if (order) {
@@ -391,19 +423,24 @@ export class Store {
             await this.firebase.updateOrder(orderId, order);
           }
         }
-        console.log(`Pedidos desassociados do lote ${code} atualizados no Firebase`);
+        console.log(
+          `Pedidos desassociados do lote ${code} atualizados no Firebase`
+        );
       } catch (error) {
-        console.error("Erro ao atualizar pedidos desassociados no Firebase:", error);
+        console.error(
+          "Erro ao atualizar pedidos desassociados no Firebase:",
+          error
+        );
       }
     }
 
     this.batches = this.batches.filter((batch) => batch.code !== code);
-    
+
     // Deletar do Firebase se disponível
     if (this.firebase.isInitialized) {
       await this.firebase.deleteBatch(code);
     }
-    
+
     await this.saveData();
     return true;
   }
@@ -464,7 +501,9 @@ export class Store {
             await this.firebase.updateOrder(orderId, order);
           }
         }
-        console.log(`Pedidos associados ao lote ${batchCode} atualizados no Firebase`);
+        console.log(
+          `Pedidos associados ao lote ${batchCode} atualizados no Firebase`
+        );
       } catch (error) {
         console.error("Erro ao atualizar pedidos no Firebase:", error);
       }
@@ -492,39 +531,87 @@ export class Store {
   }
 
   getAvailableOrders() {
+    console.log("=== DEBUG getAvailableOrders ===");
+    console.log("Total de pedidos:", this.orders.length);
+    
+    // Debug: verificar todos os pedidos e seus batchCodes
+    this.orders.forEach(order => {
+      if (order.shippingType === "PADRAO" && order.paymentStatus === "PAGO") {
+        console.log(`Pedido ${order.id}: batchCode = "${order.batchCode}" (tipo: ${typeof order.batchCode})`);
+      }
+    });
+
     const available = this.orders.filter(
       (order) =>
         order.shippingType === "PADRAO" &&
         order.paymentStatus === "PAGO" &&
         !order.batchCode
     );
-    
+
     // Debug: verificar pedidos com batchCode
-    const ordersWithBatch = this.orders.filter(order => order.batchCode);
+    const ordersWithBatch = this.orders.filter((order) => order.batchCode);
     if (ordersWithBatch.length > 0) {
-      console.log("Pedidos já em lotes:", ordersWithBatch.map(o => ({id: o.id, batchCode: o.batchCode})));
+      console.log(
+        "Pedidos já em lotes:",
+        ordersWithBatch.map((o) => ({ id: o.id, batchCode: o.batchCode }))
+      );
     }
-    
+
     console.log(`Pedidos disponíveis para lotes: ${available.length} de ${this.orders.length}`);
+    console.log("Pedidos disponíveis:", available.map(o => o.id));
+    console.log("=== FIM DEBUG getAvailableOrders ===");
+    
     return available;
   }
 
   // Método para forçar sincronização e recarregar dados
   async forceSyncAndReload() {
     console.log("Forçando sincronização e recarregamento de dados...");
-    
+
     // Limpar dados locais
     this.orders = [];
     this.batches = [];
     this.isLoaded = false;
-    
+
     // Recarregar dados
     await this.loadData();
-    
+
     console.log("Sincronização concluída. Dados recarregados:", {
       orders: this.orders.length,
-      batches: this.batches.length
+      batches: this.batches.length,
     });
+  }
+
+  // Método para verificar integridade dos dados
+  checkDataIntegrity() {
+    console.log("=== VERIFICAÇÃO DE INTEGRIDADE ===");
+    
+    // Verificar se todos os pedidos em lotes têm batchCode correto
+    this.batches.forEach(batch => {
+      console.log(`Lote ${batch.code}: ${batch.orderIds.length} pedidos`);
+      
+      batch.orderIds.forEach(orderId => {
+        const order = this.getOrder(orderId);
+        if (!order) {
+          console.error(`ERRO: Pedido ${orderId} não encontrado!`);
+        } else if (order.batchCode !== batch.code) {
+          console.error(`ERRO: Pedido ${orderId} está no lote ${batch.code} mas tem batchCode = "${order.batchCode}"`);
+        }
+      });
+    });
+
+    // Verificar se pedidos com batchCode estão realmente em lotes
+    const ordersWithBatch = this.orders.filter(order => order.batchCode);
+    ordersWithBatch.forEach(order => {
+      const batch = this.getBatch(order.batchCode);
+      if (!batch) {
+        console.error(`ERRO: Pedido ${order.id} tem batchCode "${order.batchCode}" mas lote não existe!`);
+      } else if (!batch.orderIds.includes(order.id)) {
+        console.error(`ERRO: Pedido ${order.id} tem batchCode "${order.batchCode}" mas não está na lista do lote!`);
+      }
+    });
+
+    console.log("=== FIM VERIFICAÇÃO DE INTEGRIDADE ===");
   }
 
   getOrdersInBatch(batchCode) {

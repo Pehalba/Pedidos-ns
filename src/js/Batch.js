@@ -160,6 +160,9 @@ export class Batch {
   }
 
   loadAvailableOrders() {
+    // Verificar integridade dos dados antes de carregar pedidos disponíveis
+    this.store.checkDataIntegrity();
+    
     const availableOrders = this.store
       .getOrders()
       .filter(
