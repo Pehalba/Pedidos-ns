@@ -432,7 +432,9 @@ export class CsvImport {
 
     return {
       id: row[this.mapping.id]?.toString().trim(),
-      customerName: row[this.mapping.customerName]?.toString().trim(),
+      customerName:
+        row[this.mapping.customerName]?.toString().trim() ||
+        "Cliente não informado",
       productName: row[this.mapping.productName]?.toString().trim(),
       size: row[this.mapping.size]?.toString().trim() || "",
       sku: row[this.mapping.sku]?.toString().trim() || "",
@@ -449,9 +451,7 @@ export class CsvImport {
       errors.push("ID do pedido é obrigatório");
     }
 
-    if (!data.customerName || data.customerName.trim() === "") {
-      errors.push("Nome do cliente é obrigatório");
-    }
+    // Nome do cliente é opcional
 
     if (!data.productName || data.productName.trim() === "") {
       errors.push("Nome do produto é obrigatório");

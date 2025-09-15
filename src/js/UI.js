@@ -24,14 +24,20 @@ export class UI {
     const overlay = document.getElementById("modal-overlay");
     console.log("Modal encontrado:", modal);
     console.log("Overlay encontrado:", overlay);
-    
+
     if (modal && overlay) {
       console.log("Removendo classes de visibilidade...");
       modal.classList.remove("modal--show");
       overlay.classList.remove("modal-overlay--show");
       document.body.style.overflow = "";
-      console.log("Classes removidas. Modal visível:", modal.classList.contains("modal--show"));
-      console.log("Overlay visível:", overlay.classList.contains("modal-overlay--show"));
+      console.log(
+        "Classes removidas. Modal visível:",
+        modal.classList.contains("modal--show")
+      );
+      console.log(
+        "Overlay visível:",
+        overlay.classList.contains("modal-overlay--show")
+      );
     } else {
       console.error("Modal ou overlay não encontrado");
     }
@@ -130,10 +136,24 @@ export class UI {
             </span>
           </div>
           
+          <div class="batch-card__destination">
+            <button class="destination-btn destination-btn--${
+              batch.destination || "pedro"
+            }" 
+                    onclick="window.app.batch.toggleDestination('${
+                      batch.code
+                    }')">
+              📦 ${batch.destination === "edu" ? "Edu" : "Pedro"}
+            </button>
+          </div>
+          
           <div class="batch-card__orders">
             <span>${batch.orderIds.length} pedidos</span>
                          <div class="batch-card__orders-list">
-               ${this.renderBatchOrdersPreview(batch.orderIds, store || window.app?.store)}
+               ${this.renderBatchOrdersPreview(
+                 batch.orderIds,
+                 store || window.app?.store
+               )}
              </div>
           </div>
           
@@ -253,7 +273,9 @@ export class UI {
     if (!container || !countContainer) return;
 
     // Filtrar apenas pedidos EXPRESSO
-    const expressOrders = allOrders.filter(order => order.shippingType === "EXPRESSO");
+    const expressOrders = allOrders.filter(
+      (order) => order.shippingType === "EXPRESSO"
+    );
 
     // Atualizar contador
     countContainer.textContent = expressOrders.length;
@@ -531,7 +553,7 @@ export class UI {
     }
 
     // Verificar se o store está disponível
-    if (!store || typeof store.getOrder !== 'function') {
+    if (!store || typeof store.getOrder !== "function") {
       return '<p class="no-orders">Carregando...</p>';
     }
 
@@ -544,9 +566,9 @@ export class UI {
       return '<p class="no-orders">Pedidos não encontrados</p>';
     }
 
-    // Mostrar apenas os primeiros 5 pedidos para não sobrecarregar o card
-    const previewOrders = orders.slice(0, 5);
-    const hasMore = orders.length > 5;
+    // Mostrar apenas os primeiros 8 pedidos para não sobrecarregar o card
+    const previewOrders = orders.slice(0, 8);
+    const hasMore = orders.length > 8;
 
     const ordersHtml = previewOrders
       .map(
@@ -562,7 +584,7 @@ export class UI {
     let html = ordersHtml;
 
     if (hasMore) {
-      const remaining = orders.length - 5;
+      const remaining = orders.length - 8;
       html += `
         <div class="order-preview-more">
           <span>+${remaining} mais</span>

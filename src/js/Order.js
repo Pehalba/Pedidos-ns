@@ -208,7 +208,9 @@ export class Order {
       this.store.removeOrderFromBatch(orderId, order.batchCode);
     }
 
-    return await this.store.updateOrder(orderId, { shippingType: newShippingType });
+    return await this.store.updateOrder(orderId, {
+      shippingType: newShippingType,
+    });
   }
 
   // Métodos para busca e filtros
@@ -320,9 +322,7 @@ export class Order {
       errors.push("ID do pedido é obrigatório");
     }
 
-    if (!data.customerName || data.customerName.trim() === "") {
-      errors.push("Nome do cliente é obrigatório");
-    }
+    // Nome do cliente é opcional
 
     if (!data.productName || data.productName.trim() === "") {
       errors.push("Nome do produto é obrigatório");
@@ -343,7 +343,7 @@ export class Order {
   normalizeOrderData(data) {
     return {
       id: data.id?.toString().trim(),
-      customerName: data.customerName?.trim(),
+      customerName: data.customerName?.trim() || "Cliente não informado",
       productName: data.productName?.trim(),
       size: data.size?.trim() || "",
       sku: data.sku?.trim() || "",

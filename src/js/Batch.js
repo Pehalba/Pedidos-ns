@@ -28,8 +28,6 @@ export class Batch {
         this.closeModal();
       });
     }
-
-
   }
 
   setupModalEventListeners() {
@@ -39,7 +37,7 @@ export class Batch {
       // Remover listeners antigos
       const newSaveBtn = saveBtn.cloneNode(true);
       saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-      
+
       // Adicionar novo listener
       newSaveBtn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -212,12 +210,16 @@ export class Batch {
 
   async saveBatch() {
     console.log("saveBatch chamado");
-    
+
     const nameInput = document.getElementById("batch-name");
     const trackingInput = document.getElementById("batch-tracking");
     const notesInput = document.getElementById("batch-notes");
 
-    console.log("Inputs encontrados:", { nameInput, trackingInput, notesInput });
+    console.log("Inputs encontrados:", {
+      nameInput,
+      trackingInput,
+      notesInput,
+    });
 
     if (!nameInput || !nameInput.value.trim()) {
       this.showToast("Nome do lote é obrigatório", "error");
@@ -267,12 +269,12 @@ export class Batch {
       try {
         await this.store.deleteBatch(codeToDelete);
         this.showToast("Lote excluído com sucesso", "success");
-        
+
         // Se estamos em um modal, fechar
         if (this.currentBatchCode) {
           this.closeModal();
         }
-        
+
         window.app.renderDashboard();
       } catch (error) {
         console.error("Erro ao excluir lote:", error);
@@ -290,8 +292,8 @@ export class Batch {
 
   updateBatchTracking(tracking) {
     if (!this.currentBatchCode) return;
-    if (!this.store || typeof this.store.updateBatchTracking !== 'function') {
-      console.error('Store ou método updateBatchTracking não disponível');
+    if (!this.store || typeof this.store.updateBatchTracking !== "function") {
+      console.error("Store ou método updateBatchTracking não disponível");
       return;
     }
 
@@ -302,14 +304,48 @@ export class Batch {
     const tracking = prompt("Digite o código de rastreio:");
     if (!tracking) return;
 
-    if (!this.store || typeof this.store.updateBatchTracking !== 'function') {
-      console.error('Store ou método updateBatchTracking não disponível');
+    if (!this.store || typeof this.store.updateBatchTracking !== "function") {
+      console.error("Store ou método updateBatchTracking não disponível");
       return;
     }
 
     this.store.updateBatchTracking(batchCode, tracking.trim());
     this.showToast("Código de rastreio adicionado", "success");
     window.app.renderDashboard();
+  }
+
+  async toggleDestination(batchCode) {
+    if (!this.store) {
+      console.error("Store não disponível");
+      return;
+    }
+
+    try {
+      const batch = this.store.getBatch(batchCode);
+      if (!batch) {
+        this.showToast("Lote não encontrado", "error");
+        return;
+      }
+
+      // Alternar entre 'pedro' e 'edu'
+      const newDestination = batch.destination === "edu" ? "pedro" : "edu";
+
+      // Atualizar o lote com o novo destino
+      await this.store.updateBatch(batchCode, {
+        ...batch,
+        destination: newDestination,
+        updatedAt: new Date().toISOString(),
+      });
+
+      const destinationName = newDestination === "edu" ? "Edu" : "Pedro";
+      this.showToast(`Destino alterado para ${destinationName}`, "success");
+
+      // Recarregar o dashboard para mostrar a mudança
+      window.app.renderDashboard();
+    } catch (error) {
+      console.error("Erro ao alterar destino:", error);
+      this.showToast("Erro ao alterar destino", "error");
+    }
   }
 
   renderBatchDetail(batch) {
