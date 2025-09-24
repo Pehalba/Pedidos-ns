@@ -18,6 +18,19 @@ export class Batch {
             (id) => id !== orderId
           );
         }
+        this.updateSelectedOrdersDisplay();
+      }
+    });
+
+    // Event listener para remoção de pedidos selecionados
+    document.addEventListener("click", (e) => {
+      if (e.target.classList.contains("remove-selected-order")) {
+        const orderId = e.target.dataset.orderId;
+        this.removeSelectedOrder(orderId);
+      }
+      
+      if (e.target.id === "clear-all-selected") {
+        this.clearAllSelectedOrders();
       }
     });
 
@@ -74,6 +87,7 @@ export class Batch {
       titleElement.textContent = "Novo Lote";
     }
 
+    this.updateSelectedOrdersDisplay(); // Atualizar exibição das seleções
     this.showModal();
     this.setupModalEventListeners();
   }
@@ -92,6 +106,7 @@ export class Batch {
       titleElement.textContent = "Editar Lote";
     }
 
+    this.updateSelectedOrdersDisplay(); // Atualizar exibição das seleções
     this.showModal();
     this.setupModalEventListeners();
   }
@@ -209,6 +224,78 @@ export class Batch {
       .join("");
 
     container.innerHTML = ordersHtml;
+    this.updateSelectedOrdersDisplay();
+  }
+
+  updateSelectedOrdersDisplay() {
+    const section = document.getElementById("selected-orders-section");
+    const count = document.getElementById("selected-count");
+    const list = document.getElementById("selected-orders-list");
+    
+    if (!section || !count || !list) return;
+
+    if (this.selectedOrderIds.length === 0) {
+      section.style.display = "none";
+      return;
+    }
+
+    section.style.display = "block";
+    count.textContent = this.selectedOrderIds.length;
+
+    // Buscar informações dos pedidos selecionados
+    const selectedOrders = this.selectedOrderIds
+      .map(id => this.store.getOrder(id))
+      .filter(Boolean);
+
+    const ordersHtml = selectedOrders
+      .map(order => `
+        <div class="selected-order-item">
+          <div class="order-info">
+            <strong>#${order.id}</strong> - ${order.productName}
+            <br>
+            <small>${order.customerName} - ${order.size || "N/A"}</small>
+          </div>
+          <button 
+            type="button" 
+            class="remove-btn remove-selected-order" 
+            data-order-id="${order.id}"
+            title="Remover pedido"
+          >
+            ×
+          </button>
+        </div>
+      `)
+      .join("");
+
+    list.innerHTML = ordersHtml;
+  }
+
+  removeSelectedOrder(orderId) {
+    // Remover da lista de selecionados
+    this.selectedOrderIds = this.selectedOrderIds.filter(id => id !== orderId);
+    
+    // Desmarcar o checkbox correspondente
+    const checkbox = document.querySelector(`input[value="${orderId}"]`);
+    if (checkbox) {
+      checkbox.checked = false;
+    }
+    
+    // Atualizar a exibição
+    this.updateSelectedOrdersDisplay();
+  }
+
+  clearAllSelectedOrders() {
+    // Limpar lista de selecionados
+    this.selectedOrderIds = [];
+    
+    // Desmarcar todos os checkboxes
+    const checkboxes = document.querySelectorAll('.order-checkbox');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = false;
+    });
+    
+    // Atualizar a exibição
+    this.updateSelectedOrdersDisplay();
   }
 
   async saveBatch() {
