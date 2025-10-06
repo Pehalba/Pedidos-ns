@@ -134,9 +134,6 @@ export class UI {
             <span class="status-badge status-badge--${batch.status.toLowerCase()}">
               ${this.getStatusText(batch.status)}
             </span>
-            <span class="shipping-badge shipping-badge--${batch.isShipped ? 'shipped' : 'not-shipped'}">
-              ${batch.isShipped ? '📦 Enviado' : '⏳ Não Enviado'}
-            </span>
           </div>
           
           <div class="batch-card__destination">
@@ -148,6 +145,11 @@ export class UI {
                     }')">
               📦 ${batch.destination === "edu" ? "Edu" : "Pedro"}
             </button>
+            <span class="shipping-badge shipping-badge--${
+              batch.isShipped ? "shipped" : "not-shipped"
+            }">
+              ${batch.isShipped ? "📦 Enviado" : "⏳ Não Enviado"}
+            </span>
           </div>
           
           <div class="batch-card__orders">

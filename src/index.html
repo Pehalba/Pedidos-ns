@@ -351,18 +351,31 @@
                 class="form__input"
                 placeholder="Buscar pedidos..."
               />
-              
+
               <!-- Pedidos Selecionados -->
-              <div id="selected-orders-section" class="selected-orders-section" style="display: none;">
+              <div
+                id="selected-orders-section"
+                class="selected-orders-section"
+                style="display: none"
+              >
                 <div class="selected-orders-header">
-                  <h4>Pedidos Selecionados (<span id="selected-count">0</span>)</h4>
-                  <button type="button" class="btn btn--small btn--secondary" id="clear-all-selected">
+                  <h4>
+                    Pedidos Selecionados (<span id="selected-count">0</span>)
+                  </h4>
+                  <button
+                    type="button"
+                    class="btn btn--small btn--secondary"
+                    id="clear-all-selected"
+                  >
                     Limpar Todos
                   </button>
                 </div>
-                <div id="selected-orders-list" class="selected-orders-list"></div>
+                <div
+                  id="selected-orders-list"
+                  class="selected-orders-list"
+                ></div>
               </div>
-              
+
               <!-- Pedidos Disponíveis -->
               <div id="available-orders" class="orders-selector"></div>
             </div>
@@ -444,13 +457,15 @@
               </select>
             </div>
             <div class="form__group">
-              <label for="order-supplier" class="form__label"
-                >Fornecedor</label
-              >
+              <label for="order-supplier" class="form__label">Fornecedor</label>
               <select id="order-supplier" class="form__select">
                 <option value="">Selecionar fornecedor...</option>
               </select>
-              <button type="button" class="btn btn--small btn--secondary" id="manage-suppliers-btn">
+              <button
+                type="button"
+                class="btn btn--small btn--secondary"
+                id="manage-suppliers-btn"
+              >
                 Gerenciar Fornecedores
               </button>
             </div>
@@ -497,7 +512,9 @@
       <div class="modal__content">
         <div class="modal__header">
           <h3>Gerenciar Fornecedores</h3>
-          <button class="modal__close" id="suppliers-modal-close">&times;</button>
+          <button class="modal__close" id="suppliers-modal-close">
+            &times;
+          </button>
         </div>
         <div class="modal__body">
           <div class="suppliers-actions">
@@ -521,8 +538,15 @@
         </div>
         <form id="supplier-form" class="form">
           <div class="form__group">
-            <label for="supplier-name" class="form__label">Nome do Fornecedor *</label>
-            <input type="text" id="supplier-name" class="form__input" required />
+            <label for="supplier-name" class="form__label"
+              >Nome do Fornecedor *</label
+            >
+            <input
+              type="text"
+              id="supplier-name"
+              class="form__input"
+              required
+            />
           </div>
           <div class="form__group">
             <label for="supplier-contact" class="form__label">Contato</label>
@@ -542,13 +566,21 @@
           </div>
           <div class="form__group">
             <label class="checkbox-label">
-              <input type="checkbox" id="supplier-favorite" class="form__checkbox" />
+              <input
+                type="checkbox"
+                id="supplier-favorite"
+                class="form__checkbox"
+              />
               <span class="checkbox-custom"></span>
               Fornecedor Favorito
             </label>
           </div>
           <div class="form__actions">
-            <button type="button" class="btn btn--secondary" id="supplier-cancel">
+            <button
+              type="button"
+              class="btn btn--secondary"
+              id="supplier-cancel"
+            >
               Cancelar
             </button>
             <button type="submit" class="btn btn--primary">Salvar</button>

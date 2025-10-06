@@ -28,7 +28,7 @@ export class Batch {
         const orderId = e.target.dataset.orderId;
         this.removeSelectedOrder(orderId);
       }
-      
+
       if (e.target.id === "clear-all-selected") {
         this.clearAllSelectedOrders();
       }
@@ -177,7 +177,7 @@ export class Batch {
   loadAvailableOrders() {
     // Verificar integridade dos dados antes de carregar pedidos disponíveis
     this.store.checkDataIntegrity();
-    
+
     const availableOrders = this.store
       .getOrders()
       .filter(
@@ -231,7 +231,7 @@ export class Batch {
     const section = document.getElementById("selected-orders-section");
     const count = document.getElementById("selected-count");
     const list = document.getElementById("selected-orders-list");
-    
+
     if (!section || !count || !list) return;
 
     if (this.selectedOrderIds.length === 0) {
@@ -244,11 +244,12 @@ export class Batch {
 
     // Buscar informações dos pedidos selecionados
     const selectedOrders = this.selectedOrderIds
-      .map(id => this.store.getOrder(id))
+      .map((id) => this.store.getOrder(id))
       .filter(Boolean);
 
     const ordersHtml = selectedOrders
-      .map(order => `
+      .map(
+        (order) => `
         <div class="selected-order-item">
           <div class="order-info">
             <strong>#${order.id}</strong> - ${order.productName}
@@ -264,7 +265,8 @@ export class Batch {
             ×
           </button>
         </div>
-      `)
+      `
+      )
       .join("");
 
     list.innerHTML = ordersHtml;
@@ -272,14 +274,16 @@ export class Batch {
 
   removeSelectedOrder(orderId) {
     // Remover da lista de selecionados
-    this.selectedOrderIds = this.selectedOrderIds.filter(id => id !== orderId);
-    
+    this.selectedOrderIds = this.selectedOrderIds.filter(
+      (id) => id !== orderId
+    );
+
     // Desmarcar o checkbox correspondente
     const checkbox = document.querySelector(`input[value="${orderId}"]`);
     if (checkbox) {
       checkbox.checked = false;
     }
-    
+
     // Atualizar a exibição
     this.updateSelectedOrdersDisplay();
   }
@@ -287,13 +291,13 @@ export class Batch {
   clearAllSelectedOrders() {
     // Limpar lista de selecionados
     this.selectedOrderIds = [];
-    
+
     // Desmarcar todos os checkboxes
-    const checkboxes = document.querySelectorAll('.order-checkbox');
-    checkboxes.forEach(checkbox => {
+    const checkboxes = document.querySelectorAll(".order-checkbox");
+    checkboxes.forEach((checkbox) => {
       checkbox.checked = false;
     });
-    
+
     // Atualizar a exibição
     this.updateSelectedOrdersDisplay();
   }

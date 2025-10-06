@@ -53,13 +53,13 @@ class App {
     });
 
     // Autenticação
-    const authBtn = document.getElementById('auth-btn');
+    const authBtn = document.getElementById("auth-btn");
     if (authBtn) {
-      authBtn.addEventListener('click', () => {
+      authBtn.addEventListener("click", () => {
         if (this.auth.checkAuth()) {
           this.auth.logout();
           this.auth.updateUI();
-          this.auth.showToast('Logout realizado com sucesso!', 'success');
+          this.auth.showToast("Logout realizado com sucesso!", "success");
         } else {
           this.auth.showLoginModal();
         }
@@ -94,9 +94,14 @@ class App {
     const createDemoBtn = document.getElementById("create-demo-btn");
     if (createDemoBtn) {
       createDemoBtn.addEventListener("click", () => {
-        if (confirm("Isso irá criar dados de demonstração. Deseja continuar?")) {
+        if (
+          confirm("Isso irá criar dados de demonstração. Deseja continuar?")
+        ) {
           this.createDemoData();
-          this.ui.showToast("Dados de demonstração criados com sucesso!", "success");
+          this.ui.showToast(
+            "Dados de demonstração criados com sucesso!",
+            "success"
+          );
           this.renderDashboard();
         }
       });
@@ -224,11 +229,11 @@ class App {
   renderDashboard() {
     const batches = this.store.getBatches();
     const orders = this.store.getOrders();
-    
+
     this.ui.renderBatchesList(batches, this.store);
     this.ui.renderExpressOrdersList(orders);
     this.updateStatusCounts();
-    
+
     // Reaplicar autenticação após renderizar novos elementos
     this.auth.updateUI();
   }
@@ -236,7 +241,7 @@ class App {
   renderOrders() {
     const orders = this.store.getOrders();
     this.ui.renderOrdersList(orders);
-    
+
     // Reaplicar autenticação após renderizar novos elementos
     this.auth.updateUI();
   }
@@ -492,23 +497,25 @@ class App {
         orders: this.store.getOrders(),
         batches: this.store.getBatches(),
         exportDate: new Date().toISOString(),
-        version: "1.0"
+        version: "1.0",
       };
 
       const dataStr = JSON.stringify(data, null, 2);
       const dataBlob = new Blob([dataStr], { type: "application/json" });
-      
+
       const url = URL.createObjectURL(dataBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `pedidos-backup-${new Date().toISOString().split('T')[0]}.json`;
-      
+      link.download = `pedidos-backup-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       URL.revokeObjectURL(url);
-      
+
       this.ui.showToast("Dados exportados com sucesso!", "success");
     } catch (error) {
       console.error("Erro ao exportar dados:", error);
@@ -523,52 +530,62 @@ class App {
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target.result);
-        
+
         if (!data.orders || !data.batches) {
           throw new Error("Arquivo inválido");
         }
 
-        if (confirm("Isso irá substituir todos os dados atuais. Deseja continuar?")) {
+        if (
+          confirm(
+            "Isso irá substituir todos os dados atuais. Deseja continuar?"
+          )
+        ) {
           // Limpar dados atuais
           localStorage.removeItem("orders");
           localStorage.removeItem("batches");
-          
+
           // Carregar novos dados
           localStorage.setItem("orders", JSON.stringify(data.orders));
           localStorage.setItem("batches", JSON.stringify(data.batches));
-          
+
           // Recarregar dados no store
           this.store.loadData();
-          
+
           // Atualizar interface
           this.renderDashboard();
           this.updateStatusCounts();
-          
+
           this.ui.showToast("Dados importados com sucesso!", "success");
         }
       } catch (error) {
         console.error("Erro ao importar dados:", error);
-        this.ui.showToast("Erro ao importar dados. Verifique se o arquivo é válido.", "error");
+        this.ui.showToast(
+          "Erro ao importar dados. Verifique se o arquivo é válido.",
+          "error"
+        );
       }
     };
-    
+
     reader.readAsText(file);
   }
 
   copyCustomerMessage() {
     const messageText = document.getElementById("customer-message-text");
     const copyBtn = document.getElementById("copy-message-btn");
-    
+
     if (messageText && copyBtn) {
       const textToCopy = messageText.textContent.trim();
-      
+
       // Usar a API moderna de clipboard
       if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(textToCopy).then(() => {
-          this.showCopySuccess(copyBtn);
-        }).catch(() => {
-          this.fallbackCopyTextToClipboard(textToCopy, copyBtn);
-        });
+        navigator.clipboard
+          .writeText(textToCopy)
+          .then(() => {
+            this.showCopySuccess(copyBtn);
+          })
+          .catch(() => {
+            this.fallbackCopyTextToClipboard(textToCopy, copyBtn);
+          });
       } else {
         this.fallbackCopyTextToClipboard(textToCopy, copyBtn);
       }
@@ -579,7 +596,7 @@ class App {
     const originalText = copyBtn.textContent;
     copyBtn.textContent = "✅ Copiado!";
     copyBtn.classList.add("copied");
-    
+
     setTimeout(() => {
       copyBtn.textContent = originalText;
       copyBtn.classList.remove("copied");
@@ -595,7 +612,7 @@ class App {
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-    
+
     try {
       const successful = document.execCommand("copy");
       if (successful) {
@@ -606,7 +623,7 @@ class App {
     } catch (err) {
       this.ui.showToast("Erro ao copiar texto", "error");
     }
-    
+
     document.body.removeChild(textArea);
   }
 }

@@ -50,12 +50,16 @@ export class Store {
           console.log("=== DEBUG loadData Firebase ===");
           console.log("Pedidos carregados do Firebase:", this.orders.length);
           console.log("Lotes carregados do Firebase:", this.batches.length);
-          
+
           // Verificar pedidos com batchCode
-          const ordersWithBatch = this.orders.filter(order => order.batchCode);
+          const ordersWithBatch = this.orders.filter(
+            (order) => order.batchCode
+          );
           if (ordersWithBatch.length > 0) {
-            console.log("Pedidos com batchCode carregados do Firebase:", 
-              ordersWithBatch.map(o => ({id: o.id, batchCode: o.batchCode})));
+            console.log(
+              "Pedidos com batchCode carregados do Firebase:",
+              ordersWithBatch.map((o) => ({ id: o.id, batchCode: o.batchCode }))
+            );
           }
           console.log("=== FIM DEBUG loadData Firebase ===");
 
@@ -71,6 +75,9 @@ export class Store {
 
           // Salvar no localStorage como backup
           await this.saveData();
+
+          // Atualizar lotes antigos que têm rastreio mas não estão marcados como enviados
+          await this.updateOldBatchesShippingStatus();
 
           this.isLoaded = true;
           console.log("Dados carregados do Firebase:", {
@@ -106,6 +113,9 @@ export class Store {
 
         // Calcular próximo número de lote
         this.calculateNextBatchNumber();
+
+        // Atualizar lotes antigos que têm rastreio mas não estão marcados como enviados
+        await this.updateOldBatchesShippingStatus();
 
         this.isLoaded = true;
         console.log("Dados carregados do localStorage:", {
@@ -472,7 +482,7 @@ export class Store {
 
     batch.inboundTracking = tracking;
     batch.updatedAt = new Date().toISOString();
-    
+
     // Se adicionou rastreio, marcar como enviado automaticamente
     if (tracking && tracking.trim() !== "") {
       batch.isShipped = true;
@@ -493,7 +503,7 @@ export class Store {
 
     batch.notes = notes;
     batch.updatedAt = new Date().toISOString();
-    
+
     // Se adicionou notas, marcar como enviado automaticamente
     if (notes && notes.trim() !== "") {
       batch.isShipped = true;
@@ -566,11 +576,15 @@ export class Store {
   getAvailableOrders() {
     console.log("=== DEBUG getAvailableOrders ===");
     console.log("Total de pedidos:", this.orders.length);
-    
+
     // Debug: verificar todos os pedidos e seus batchCodes
-    this.orders.forEach(order => {
+    this.orders.forEach((order) => {
       if (order.shippingType === "PADRAO" && order.paymentStatus === "PAGO") {
-        console.log(`Pedido ${order.id}: batchCode = "${order.batchCode}" (tipo: ${typeof order.batchCode})`);
+        console.log(
+          `Pedido ${order.id}: batchCode = "${
+            order.batchCode
+          }" (tipo: ${typeof order.batchCode})`
+        );
       }
     });
 
@@ -590,10 +604,15 @@ export class Store {
       );
     }
 
-    console.log(`Pedidos disponíveis para lotes: ${available.length} de ${this.orders.length}`);
-    console.log("Pedidos disponíveis:", available.map(o => o.id));
+    console.log(
+      `Pedidos disponíveis para lotes: ${available.length} de ${this.orders.length}`
+    );
+    console.log(
+      "Pedidos disponíveis:",
+      available.map((o) => o.id)
+    );
     console.log("=== FIM DEBUG getAvailableOrders ===");
-    
+
     return available;
   }
 
@@ -618,43 +637,53 @@ export class Store {
   // Método para verificar integridade dos dados
   checkDataIntegrity() {
     console.log("=== VERIFICAÇÃO DE INTEGRIDADE ===");
-    
+
     let errorsFound = 0;
-    
+
     // Verificar se todos os pedidos em lotes têm batchCode correto
-    this.batches.forEach(batch => {
+    this.batches.forEach((batch) => {
       console.log(`Lote ${batch.code}: ${batch.orderIds.length} pedidos`);
-      
-      batch.orderIds.forEach(orderId => {
+
+      batch.orderIds.forEach((orderId) => {
         const order = this.getOrder(orderId);
         if (!order) {
           console.error(`ERRO: Pedido ${orderId} não encontrado!`);
           errorsFound++;
         } else if (order.batchCode !== batch.code) {
-          console.error(`ERRO: Pedido ${orderId} está no lote ${batch.code} mas tem batchCode = "${order.batchCode}"`);
+          console.error(
+            `ERRO: Pedido ${orderId} está no lote ${batch.code} mas tem batchCode = "${order.batchCode}"`
+          );
           errorsFound++;
         }
       });
     });
 
     // Verificar se pedidos com batchCode estão realmente em lotes
-    const ordersWithBatch = this.orders.filter(order => order.batchCode);
-    ordersWithBatch.forEach(order => {
+    const ordersWithBatch = this.orders.filter((order) => order.batchCode);
+    ordersWithBatch.forEach((order) => {
       const batch = this.getBatch(order.batchCode);
       if (!batch) {
-        console.error(`ERRO: Pedido ${order.id} tem batchCode "${order.batchCode}" mas lote não existe!`);
+        console.error(
+          `ERRO: Pedido ${order.id} tem batchCode "${order.batchCode}" mas lote não existe!`
+        );
         errorsFound++;
       } else if (!batch.orderIds.includes(order.id)) {
-        console.error(`ERRO: Pedido ${order.id} tem batchCode "${order.batchCode}" mas não está na lista do lote!`);
+        console.error(
+          `ERRO: Pedido ${order.id} tem batchCode "${order.batchCode}" mas não está na lista do lote!`
+        );
         errorsFound++;
       }
     });
 
-    console.log(`=== FIM VERIFICAÇÃO DE INTEGRIDADE - ${errorsFound} erros encontrados ===`);
-    
+    console.log(
+      `=== FIM VERIFICAÇÃO DE INTEGRIDADE - ${errorsFound} erros encontrados ===`
+    );
+
     // Se há erros, oferecer reparo automático
     if (errorsFound > 0) {
-      console.log("⚠️ Inconsistências detectadas! Executando reparo automático...");
+      console.log(
+        "⚠️ Inconsistências detectadas! Executando reparo automático..."
+      );
       this.repairDataIntegrity();
     }
   }
@@ -662,46 +691,57 @@ export class Store {
   // Método para reparar integridade dos dados
   async repairDataIntegrity() {
     console.log("=== INICIANDO REPARO DE INTEGRIDADE ===");
-    
+
     let repairsMade = 0;
-    
+
     // 1. Limpar batchCode de todos os pedidos primeiro
-    this.orders.forEach(order => {
+    this.orders.forEach((order) => {
       if (order.batchCode) {
         delete order.batchCode;
         delete order.internalTag;
         repairsMade++;
       }
     });
-    
+
     // 2. Reassociar pedidos aos lotes baseado nas listas dos lotes
-    this.batches.forEach(batch => {
-      batch.orderIds.forEach(orderId => {
+    this.batches.forEach((batch) => {
+      batch.orderIds.forEach((orderId) => {
         const order = this.getOrder(orderId);
         if (order) {
           order.batchCode = batch.code;
-          order.internalTag = this.generateInternalTag(order.productName, order.id);
+          order.internalTag = this.generateInternalTag(
+            order.productName,
+            order.id
+          );
           repairsMade++;
         }
       });
     });
-    
+
     // 3. Remover pedidos inexistentes das listas dos lotes
-    this.batches.forEach(batch => {
-      const validOrderIds = batch.orderIds.filter(orderId => this.getOrder(orderId));
+    this.batches.forEach((batch) => {
+      const validOrderIds = batch.orderIds.filter((orderId) =>
+        this.getOrder(orderId)
+      );
       if (validOrderIds.length !== batch.orderIds.length) {
-        console.log(`Lote ${batch.code}: removendo ${batch.orderIds.length - validOrderIds.length} pedidos inexistentes`);
+        console.log(
+          `Lote ${batch.code}: removendo ${
+            batch.orderIds.length - validOrderIds.length
+          } pedidos inexistentes`
+        );
         batch.orderIds = validOrderIds;
         repairsMade++;
       }
     });
-    
-    console.log(`=== REPARO CONCLUÍDO - ${repairsMade} correções realizadas ===`);
-    
+
+    console.log(
+      `=== REPARO CONCLUÍDO - ${repairsMade} correções realizadas ===`
+    );
+
     // 4. Salvar as correções
     if (repairsMade > 0) {
       console.log("Salvando correções...");
-      
+
       // Salvar no Firebase se disponível
       if (this.firebase.isInitialized) {
         try {
@@ -709,18 +749,18 @@ export class Store {
           for (const order of this.orders) {
             await this.firebase.updateOrder(order.id, order);
           }
-          
+
           // Atualizar todos os lotes no Firebase
           for (const batch of this.batches) {
             await this.firebase.updateBatch(batch.code, batch);
           }
-          
+
           console.log("Correções salvas no Firebase com sucesso!");
         } catch (error) {
           console.error("Erro ao salvar correções no Firebase:", error);
         }
       }
-      
+
       // Salvar no localStorage
       await this.saveData();
       console.log("Correções salvas no localStorage!");
@@ -759,11 +799,11 @@ export class Store {
   }
 
   getSupplier(id) {
-    return this.suppliers?.find(supplier => supplier.id === id);
+    return this.suppliers?.find((supplier) => supplier.id === id);
   }
 
   getFavoriteSupplier() {
-    return this.suppliers?.find(supplier => supplier.isFavorite) || null;
+    return this.suppliers?.find((supplier) => supplier.isFavorite) || null;
   }
 
   async addSupplier(supplierData) {
@@ -785,7 +825,7 @@ export class Store {
 
     // Se este fornecedor for marcado como favorito, desmarcar os outros
     if (supplier.isFavorite) {
-      this.suppliers.forEach(s => s.isFavorite = false);
+      this.suppliers.forEach((s) => (s.isFavorite = false));
     }
 
     this.suppliers.push(supplier);
@@ -796,7 +836,7 @@ export class Store {
   async updateSupplier(id, supplierData) {
     if (!this.suppliers) return null;
 
-    const supplierIndex = this.suppliers.findIndex(s => s.id === id);
+    const supplierIndex = this.suppliers.findIndex((s) => s.id === id);
     if (supplierIndex === -1) return null;
 
     const updatedSupplier = {
@@ -808,7 +848,7 @@ export class Store {
 
     // Se este fornecedor for marcado como favorito, desmarcar os outros
     if (updatedSupplier.isFavorite) {
-      this.suppliers.forEach(s => {
+      this.suppliers.forEach((s) => {
         if (s.id !== id) s.isFavorite = false;
       });
     }
@@ -821,9 +861,56 @@ export class Store {
   async deleteSupplier(id) {
     if (!this.suppliers) return false;
 
-    this.suppliers = this.suppliers.filter(s => s.id !== id);
+    this.suppliers = this.suppliers.filter((s) => s.id !== id);
     await this.saveData();
     return true;
+  }
+
+  // Método para atualizar lotes antigos que têm rastreio mas não estão marcados como enviados
+  async updateOldBatchesShippingStatus() {
+    console.log("=== ATUALIZANDO STATUS DE ENVIO DE LOTES ANTIGOS ===");
+    
+    let updatedBatches = 0;
+    const batchesToUpdate = [];
+
+    // Verificar todos os lotes
+    this.batches.forEach((batch) => {
+      // Se o lote tem rastreio ou notas mas não está marcado como enviado
+      const hasTracking = batch.inboundTracking && batch.inboundTracking.trim() !== "";
+      const hasNotes = batch.notes && batch.notes.trim() !== "";
+      
+      if ((hasTracking || hasNotes) && !batch.isShipped) {
+        console.log(`Atualizando lote ${batch.code}: tem rastreio/notas mas não está marcado como enviado`);
+        batch.isShipped = true;
+        batch.updatedAt = new Date().toISOString();
+        batchesToUpdate.push(batch);
+        updatedBatches++;
+      }
+    });
+
+    if (updatedBatches > 0) {
+      console.log(`Atualizando ${updatedBatches} lotes antigos...`);
+      
+      // Salvar no Firebase se disponível
+      if (this.firebase.isInitialized) {
+        try {
+          for (const batch of batchesToUpdate) {
+            await this.firebase.updateBatch(batch.code, batch);
+          }
+          console.log("Lotes antigos atualizados no Firebase com sucesso!");
+        } catch (error) {
+          console.error("Erro ao atualizar lotes antigos no Firebase:", error);
+        }
+      }
+      
+      // Salvar no localStorage
+      await this.saveData();
+      console.log("Lotes antigos atualizados no localStorage!");
+    } else {
+      console.log("Nenhum lote antigo precisa ser atualizado.");
+    }
+    
+    console.log("=== FIM ATUALIZAÇÃO DE LOTES ANTIGOS ===");
   }
 
   searchOrders(query, filters = {}) {

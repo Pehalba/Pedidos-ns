@@ -542,6 +542,14 @@
   margin-left: 8px;
 }
 
+/* Destination section with shipping badge */
+.batch-card__destination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .shipping-badge--shipped {
   background-color: #d1fae5;
   color: #065f46;

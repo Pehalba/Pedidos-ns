@@ -11,24 +11,27 @@ export class Supplier {
       if (e.target.id === "manage-suppliers-btn") {
         this.openSuppliersModal();
       }
-      
+
       if (e.target.id === "add-supplier-btn") {
         this.openSupplierFormModal();
       }
-      
-      if (e.target.id === "supplier-cancel" || e.target.id === "supplier-form-close") {
+
+      if (
+        e.target.id === "supplier-cancel" ||
+        e.target.id === "supplier-form-close"
+      ) {
         this.closeSupplierFormModal();
       }
-      
+
       if (e.target.id === "suppliers-modal-close") {
         this.closeSuppliersModal();
       }
-      
+
       if (e.target.classList.contains("edit-supplier")) {
         const supplierId = e.target.dataset.supplierId;
         this.editSupplier(supplierId);
       }
-      
+
       if (e.target.classList.contains("delete-supplier")) {
         const supplierId = e.target.dataset.supplierId;
         this.deleteSupplier(supplierId);
@@ -86,7 +89,8 @@ export class Supplier {
     document.getElementById("supplier-email").value = supplier.email || "";
     document.getElementById("supplier-phone").value = supplier.phone || "";
     document.getElementById("supplier-address").value = supplier.address || "";
-    document.getElementById("supplier-favorite").checked = supplier.isFavorite || false;
+    document.getElementById("supplier-favorite").checked =
+      supplier.isFavorite || false;
   }
 
   async saveSupplier() {
@@ -126,7 +130,9 @@ export class Supplier {
     const supplier = this.store.getSupplier(supplierId);
     if (!supplier) return;
 
-    if (confirm(`Tem certeza que deseja excluir o fornecedor "${supplier.name}"?`)) {
+    if (
+      confirm(`Tem certeza que deseja excluir o fornecedor "${supplier.name}"?`)
+    ) {
       try {
         await this.store.deleteSupplier(supplierId);
         window.app.ui.showToast("Fornecedor excluído com sucesso", "success");
@@ -160,28 +166,54 @@ export class Supplier {
     }
 
     const suppliersHtml = suppliers
-      .map(supplier => `
+      .map(
+        (supplier) => `
         <div class="supplier-item">
           <div class="supplier-info">
             <div class="supplier-name">
               ${supplier.name}
-              ${supplier.isFavorite ? '<span class="supplier-favorite">⭐ Favorito</span>' : ''}
+              ${
+                supplier.isFavorite
+                  ? '<span class="supplier-favorite">⭐ Favorito</span>'
+                  : ""
+              }
             </div>
-            ${supplier.contact ? `<div class="supplier-details">Contato: ${supplier.contact}</div>` : ''}
-            ${supplier.email ? `<div class="supplier-details">Email: ${supplier.email}</div>` : ''}
-            ${supplier.phone ? `<div class="supplier-details">Telefone: ${supplier.phone}</div>` : ''}
-            ${supplier.address ? `<div class="supplier-details">Endereço: ${supplier.address}</div>` : ''}
+            ${
+              supplier.contact
+                ? `<div class="supplier-details">Contato: ${supplier.contact}</div>`
+                : ""
+            }
+            ${
+              supplier.email
+                ? `<div class="supplier-details">Email: ${supplier.email}</div>`
+                : ""
+            }
+            ${
+              supplier.phone
+                ? `<div class="supplier-details">Telefone: ${supplier.phone}</div>`
+                : ""
+            }
+            ${
+              supplier.address
+                ? `<div class="supplier-details">Endereço: ${supplier.address}</div>`
+                : ""
+            }
           </div>
           <div class="supplier-actions">
-            <button class="btn btn--small btn--secondary edit-supplier" data-supplier-id="${supplier.id}">
+            <button class="btn btn--small btn--secondary edit-supplier" data-supplier-id="${
+              supplier.id
+            }">
               Editar
             </button>
-            <button class="btn btn--small btn--danger delete-supplier" data-supplier-id="${supplier.id}">
+            <button class="btn btn--small btn--danger delete-supplier" data-supplier-id="${
+              supplier.id
+            }">
               Excluir
             </button>
           </div>
         </div>
-      `)
+      `
+      )
       .join("");
 
     container.innerHTML = suppliersHtml;
@@ -198,7 +230,7 @@ export class Supplier {
     select.innerHTML = '<option value="">Selecionar fornecedor...</option>';
 
     // Adicionar fornecedores
-    suppliers.forEach(supplier => {
+    suppliers.forEach((supplier) => {
       const option = document.createElement("option");
       option.value = supplier.id;
       option.textContent = supplier.name;
