@@ -387,7 +387,9 @@ export class Batch {
       if (this.currentBatchCode) {
         // Editar lote existente
         console.log("Editando lote existente");
-        await this.store.updateBatch(this.currentBatchCode, batchData);
+        console.log("Chamando store.updateBatch com:", this.currentBatchCode, batchData);
+        const result = await this.store.updateBatch(this.currentBatchCode, batchData);
+        console.log("Resultado do updateBatch:", result);
         this.showToast("Lote atualizado com sucesso", "success");
       } else {
         // Criar novo lote
@@ -397,8 +399,10 @@ export class Batch {
         this.showToast("Lote criado com sucesso", "success");
       }
 
+      console.log("Fechando modal e renderizando dashboard");
       this.closeModal();
       window.app.renderDashboard();
+      console.log("Processo de salvamento concluído");
     } catch (error) {
       console.error("Erro ao salvar lote:", error);
       this.showToast("Erro ao salvar lote", "error");

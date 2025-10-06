@@ -350,16 +350,28 @@ export class Store {
   }
 
   async updateBatch(code, batchData) {
+    console.log("=== INÍCIO updateBatch ===");
+    console.log("Código do lote:", code);
+    console.log("Dados do lote:", batchData);
+    
     const batchIndex = this.batches.findIndex((batch) => batch.code === code);
-    if (batchIndex === -1) return null;
+    console.log("Índice do lote encontrado:", batchIndex);
+    
+    if (batchIndex === -1) {
+      console.error("Lote não encontrado:", code);
+      return null;
+    }
 
     const oldBatch = this.batches[batchIndex];
+    console.log("Lote antigo:", oldBatch);
+    
     const newBatch = {
       ...oldBatch,
       ...batchData,
       code: oldBatch.code, // Não permitir mudança de código
       updatedAt: new Date().toISOString(),
     };
+    console.log("Novo lote:", newBatch);
 
     // Se mudaram os pedidos, atualizar associações
     if (
@@ -380,7 +392,11 @@ export class Store {
       });
 
       // Atualizar pedidos removidos no Firebase
-      if (this.firebase.isInitialized && removedOrderIds.length > 0 && !this.firebase.quotaExceeded) {
+      if (
+        this.firebase.isInitialized &&
+        removedOrderIds.length > 0 &&
+        !this.firebase.quotaExceeded
+      ) {
         try {
           for (const orderId of removedOrderIds) {
             const order = this.getOrder(orderId);
@@ -392,8 +408,10 @@ export class Store {
             `Pedidos removidos do lote ${code} atualizados no Firebase`
           );
         } catch (error) {
-          if (error.code === 'resource-exhausted') {
-            console.warn("Cota do Firebase excedida, usando apenas localStorage");
+          if (error.code === "resource-exhausted") {
+            console.warn(
+              "Cota do Firebase excedida, usando apenas localStorage"
+            );
             this.firebase.quotaExceeded = true;
           } else {
             console.error(
@@ -411,22 +429,30 @@ export class Store {
     }
 
     this.batches[batchIndex] = newBatch;
+    console.log("Lote atualizado no array local");
 
     // Salvar no Firebase se disponível
     if (this.firebase.isInitialized) {
+      console.log("Tentando salvar no Firebase...");
       try {
         await this.firebase.updateBatch(code, newBatch);
+        console.log("Lote salvo no Firebase com sucesso");
       } catch (error) {
-        if (error.code === 'resource-exhausted') {
+        if (error.code === "resource-exhausted") {
           console.warn("Cota do Firebase excedida, usando apenas localStorage");
           this.firebase.quotaExceeded = true;
         } else {
           console.error("Erro ao atualizar lote no Firebase:", error);
         }
       }
+    } else {
+      console.log("Firebase não inicializado, pulando salvamento no Firebase");
     }
 
+    console.log("Salvando no localStorage...");
     await this.saveData();
+    console.log("Dados salvos no localStorage");
+    console.log("=== FIM updateBatch ===");
     return newBatch;
   }
 
@@ -539,9 +565,17 @@ export class Store {
   }
 
   async associateOrdersToBatch(orderIds, batchCode) {
+    console.log("=== INÍCIO associateOrdersToBatch ===");
+    console.log("OrderIds:", orderIds);
+    console.log("BatchCode:", batchCode);
+    
     const batch = this.getBatch(batchCode);
-    if (!batch) return;
+    if (!batch) {
+      console.error("Lote não encontrado para associação:", batchCode);
+      return;
+    }
 
+    console.log("Atualizando pedidos localmente...");
     // Atualizar pedidos localmente
     orderIds.forEach((orderId) => {
       const order = this.getOrder(orderId);
@@ -551,33 +585,42 @@ export class Store {
           order.productName,
           order.id
         );
+        console.log(`Pedido ${orderId} associado ao lote ${batchCode}`);
+      } else {
+        console.log(`Pedido ${orderId} não pode ser associado (tipo: ${order?.shippingType})`);
       }
     });
 
     // Salvar alterações no Firebase
     if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
+      console.log("Tentando salvar pedidos no Firebase...");
       try {
         // Atualizar cada pedido no Firebase
         for (const orderId of orderIds) {
           const order = this.getOrder(orderId);
           if (order) {
             await this.firebase.updateOrder(orderId, order);
+            console.log(`Pedido ${orderId} salvo no Firebase`);
           }
         }
         console.log(
           `Pedidos associados ao lote ${batchCode} atualizados no Firebase`
         );
       } catch (error) {
-        if (error.code === 'resource-exhausted') {
+        if (error.code === "resource-exhausted") {
           console.warn("Cota do Firebase excedida, usando apenas localStorage");
           this.firebase.quotaExceeded = true;
         } else {
           console.error("Erro ao atualizar pedidos no Firebase:", error);
         }
       }
+    } else {
+      console.log("Firebase não disponível ou cota excedida, pulando Firebase");
     }
 
+    console.log("Salvando associações no localStorage...");
     await this.saveData();
+    console.log("=== FIM associateOrdersToBatch ===");
   }
 
   removeOrderFromBatch(orderId, batchCode) {

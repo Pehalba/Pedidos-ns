@@ -230,7 +230,10 @@ export class FirebaseService {
   async addSupplier(supplierData) {
     try {
       // Usar o ID do fornecedor como ID do documento
-      await this.db.collection("suppliers").doc(supplierData.id).set(supplierData);
+      await this.db
+        .collection("suppliers")
+        .doc(supplierData.id)
+        .set(supplierData);
       return supplierData.id;
     } catch (error) {
       console.error("Erro ao adicionar fornecedor:", error);
