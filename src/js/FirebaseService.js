@@ -2,6 +2,7 @@ export class FirebaseService {
   constructor() {
     this.db = null;
     this.isInitialized = false;
+    this.quotaExceeded = false;
     this.init();
   }
 
