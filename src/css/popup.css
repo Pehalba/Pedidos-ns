@@ -144,6 +144,7 @@
 .orders-selector {
   max-height: 300px;
   overflow-y: auto;
+  overflow-x: hidden;
   border: 1px solid #cbd5e1;
   border-radius: 0.375rem;
   padding: 0.5rem;
@@ -151,6 +152,26 @@
   width: 100%;
   box-sizing: border-box;
   margin-top: 10px;
+  position: relative;
+}
+
+/* Scrollbar customizada para o seletor de pedidos */
+.orders-selector::-webkit-scrollbar {
+  width: 8px;
+}
+
+.orders-selector::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.orders-selector::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.orders-selector::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Order Item in Selector */
@@ -210,6 +231,8 @@
   visibility: visible !important;
   opacity: 1 !important;
   min-height: 50px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 /* Estilo para quando não há pedidos */
@@ -636,11 +659,22 @@
   overflow: hidden;
 }
 
+/* Garantir que o modal de lotes tenha scroll funcional */
+#batch-modal .modal__content {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+#batch-modal .form__group {
+  margin-bottom: 15px;
+}
+
 /* Fix for order selector container */
 #available-orders {
   width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .shipping-badge--shipped {
