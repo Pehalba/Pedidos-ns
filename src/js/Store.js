@@ -229,14 +229,57 @@ export class Store {
     return this.orders.find((order) => order.id === id);
   }
 
-  // Função helper para operações do Firebase com timeout
-  async withFirebaseTimeout(operation, timeoutMs = 1000) {
-    return Promise.race([
-      operation(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Firebase timeout")), timeoutMs)
-      ),
-    ]);
+  // Verificar se Firebase deve ser usado (sem cota excedida)
+  shouldUseFirebase() {
+    return this.firebase.isInitialized && !this.firebase.quotaExceeded;
+  }
+
+  // Sincronizar com Firebase em background (não bloqueia operações)
+  async syncToFirebaseInBackground() {
+    if (!this.firebase.isInitialized) {
+      console.log("Firebase não inicializado, pulando sincronização");
+      return;
+    }
+
+    // Se cota excedida, tentar verificar se foi renovada
+    if (this.firebase.quotaExceeded) {
+      console.log("Verificando se cota do Firebase foi renovada...");
+      try {
+        // Tentar uma operação simples para testar
+        await this.firebase.getOrders();
+        console.log("✅ Cota do Firebase renovada! Reabilitando Firebase");
+        this.firebase.quotaExceeded = false;
+      } catch (error) {
+        console.log("Cota ainda excedida, mantendo Firebase desabilitado");
+        return;
+      }
+    }
+
+    // Se Firebase está funcionando, sincronizar dados
+    if (this.shouldUseFirebase()) {
+      console.log("🔄 Sincronizando dados com Firebase em background...");
+      try {
+        // Sincronizar pedidos
+        for (const order of this.orders) {
+          await this.firebase.addOrder(order);
+        }
+        // Sincronizar lotes
+        for (const batch of this.batches) {
+          await this.firebase.addBatch(batch);
+        }
+        // Sincronizar fornecedores
+        for (const supplier of this.suppliers) {
+          await this.firebase.addSupplier(supplier);
+        }
+        console.log("✅ Sincronização com Firebase concluída!");
+      } catch (error) {
+        console.log("❌ Erro na sincronização:", error);
+        if (error.code === "resource-exhausted") {
+          this.firebase.quotaExceeded = true;
+          console.log("Cota excedida novamente, desabilitando Firebase");
+        }
+      }
+    }
   }
 
   async addOrder(orderData) {
@@ -263,40 +306,14 @@ export class Store {
     this.orders.push(order);
     console.log("Pedido adicionado ao array local");
 
-    // Salvar no Firebase se disponível
-    if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
-      console.log("Tentando salvar pedido no Firebase...");
-      try {
-        const result = await this.withFirebaseTimeout(() =>
-          this.firebase.addOrder(order)
-        );
-        console.log("Resultado do Firebase:", result);
-        if (result === null) {
-          console.log("Firebase retornou null, cota pode ter sido excedida");
-          this.firebase.quotaExceeded = true;
-        }
-        if (this.firebase.quotaExceeded) {
-          console.log("Cota excedida detectada durante salvamento no Firebase");
-        }
-      } catch (error) {
-        console.error("Erro ao salvar no Firebase:", error);
-        if (
-          error.code === "resource-exhausted" ||
-          error.message === "Firebase timeout"
-        ) {
-          console.log(
-            "Cota excedida ou timeout detectado, definindo quotaExceeded = true"
-          );
-          this.firebase.quotaExceeded = true;
-        }
-      }
-    } else {
-      console.log("Firebase não disponível ou cota excedida, pulando Firebase");
-    }
-
+    // SEMPRE salvar no localStorage primeiro (principal)
     console.log("Salvando no localStorage...");
     await this.saveData();
     console.log("Dados salvos no localStorage");
+
+    // Tentar sincronizar com Firebase em background (opcional)
+    this.syncToFirebaseInBackground();
+
     console.log("=== FIM addOrder ===");
     return order;
   }
@@ -336,42 +353,14 @@ export class Store {
     this.orders[orderIndex] = newOrder;
     console.log("Pedido atualizado no array local");
 
-    // Salvar no Firebase se disponível
-    if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
-      console.log("Tentando atualizar pedido no Firebase...");
-      try {
-        const result = await this.withFirebaseTimeout(() =>
-          this.firebase.updateOrder(id, newOrder)
-        );
-        console.log("Resultado do Firebase:", result);
-        if (result === false) {
-          console.log("Firebase retornou false, cota pode ter sido excedida");
-          this.firebase.quotaExceeded = true;
-        }
-        if (this.firebase.quotaExceeded) {
-          console.log(
-            "Cota excedida detectada durante atualização no Firebase"
-          );
-        }
-      } catch (error) {
-        console.error("Erro ao atualizar no Firebase:", error);
-        if (
-          error.code === "resource-exhausted" ||
-          error.message === "Firebase timeout"
-        ) {
-          console.log(
-            "Cota excedida ou timeout detectado, definindo quotaExceeded = true"
-          );
-          this.firebase.quotaExceeded = true;
-        }
-      }
-    } else {
-      console.log("Firebase não disponível ou cota excedida, pulando Firebase");
-    }
-
+    // SEMPRE salvar no localStorage primeiro (principal)
     console.log("Salvando no localStorage...");
     await this.saveData();
     console.log("Dados salvos no localStorage");
+
+    // Tentar sincronizar com Firebase em background (opcional)
+    this.syncToFirebaseInBackground();
+
     console.log("=== FIM updateOrder ===");
     return newOrder;
   }
@@ -396,40 +385,13 @@ export class Store {
     this.orders = this.orders.filter((order) => order.id !== id);
     console.log("Pedido removido do array local");
 
-    // Deletar do Firebase se disponível
-    if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
-      console.log("Tentando deletar pedido no Firebase...");
-      try {
-        const result = await this.withFirebaseTimeout(() =>
-          this.firebase.deleteOrder(id)
-        );
-        console.log("Resultado do Firebase:", result);
-        if (result === false) {
-          console.log("Firebase retornou false, cota pode ter sido excedida");
-          this.firebase.quotaExceeded = true;
-        }
-        if (this.firebase.quotaExceeded) {
-          console.log("Cota excedida detectada durante exclusão no Firebase");
-        }
-      } catch (error) {
-        console.error("Erro ao deletar no Firebase:", error);
-        if (
-          error.code === "resource-exhausted" ||
-          error.message === "Firebase timeout"
-        ) {
-          console.log(
-            "Cota excedida ou timeout detectado, definindo quotaExceeded = true"
-          );
-          this.firebase.quotaExceeded = true;
-        }
-      }
-    } else {
-      console.log("Firebase não disponível ou cota excedida, pulando Firebase");
-    }
-
+    // SEMPRE salvar no localStorage primeiro (principal)
     console.log("Salvando no localStorage...");
     await this.saveData();
     console.log("Dados salvos no localStorage");
+
+    // Tentar sincronizar com Firebase em background (opcional)
+    this.syncToFirebaseInBackground();
     console.log("=== FIM deleteOrder ===");
     return true;
   }
