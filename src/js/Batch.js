@@ -211,6 +211,10 @@ export class Batch {
     const container = document.getElementById("available-orders");
     if (!container) return;
 
+    // Preservar o tamanho atual do container
+    const currentWidth = container.style.width || container.offsetWidth + 'px';
+    const currentHeight = container.style.height || container.offsetHeight + 'px';
+
     if (orders.length === 0) {
       container.innerHTML =
         '<p class="text-muted">Nenhum pedido disponível</p>';
@@ -241,6 +245,11 @@ export class Batch {
       .join("");
 
     container.innerHTML = ordersHtml;
+    
+    // Restaurar o tamanho do container
+    container.style.width = currentWidth;
+    container.style.height = currentHeight;
+    
     this.updateSelectedOrdersDisplay();
   }
 

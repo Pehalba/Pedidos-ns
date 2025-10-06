@@ -870,18 +870,21 @@ export class Store {
   // Método para atualizar lotes antigos que têm rastreio mas não estão marcados como enviados
   async updateOldBatchesShippingStatus() {
     console.log("=== ATUALIZANDO STATUS DE ENVIO DE LOTES ANTIGOS ===");
-    
+
     let updatedBatches = 0;
     const batchesToUpdate = [];
 
     // Verificar todos os lotes
     this.batches.forEach((batch) => {
       // Se o lote tem rastreio ou notas mas não está marcado como enviado
-      const hasTracking = batch.inboundTracking && batch.inboundTracking.trim() !== "";
+      const hasTracking =
+        batch.inboundTracking && batch.inboundTracking.trim() !== "";
       const hasNotes = batch.notes && batch.notes.trim() !== "";
-      
+
       if ((hasTracking || hasNotes) && !batch.isShipped) {
-        console.log(`Atualizando lote ${batch.code}: tem rastreio/notas mas não está marcado como enviado`);
+        console.log(
+          `Atualizando lote ${batch.code}: tem rastreio/notas mas não está marcado como enviado`
+        );
         batch.isShipped = true;
         batch.updatedAt = new Date().toISOString();
         batchesToUpdate.push(batch);
@@ -891,7 +894,7 @@ export class Store {
 
     if (updatedBatches > 0) {
       console.log(`Atualizando ${updatedBatches} lotes antigos...`);
-      
+
       // Salvar no Firebase se disponível
       if (this.firebase.isInitialized) {
         try {
@@ -903,14 +906,14 @@ export class Store {
           console.error("Erro ao atualizar lotes antigos no Firebase:", error);
         }
       }
-      
+
       // Salvar no localStorage
       await this.saveData();
       console.log("Lotes antigos atualizados no localStorage!");
     } else {
       console.log("Nenhum lote antigo precisa ser atualizado.");
     }
-    
+
     console.log("=== FIM ATUALIZAÇÃO DE LOTES ANTIGOS ===");
   }
 

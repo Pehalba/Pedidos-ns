@@ -150,11 +150,15 @@ export class UI {
             }">
               ${batch.isShipped ? "📦 Enviado" : "⏳ Não Enviado"}
             </span>
-            ${batch.supplierId ? `
+            ${
+              batch.supplierId
+                ? `
               <span class="supplier-badge">
                 🏢 ${this.getSupplierName(batch.supplierId)}
               </span>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
           
           <div class="batch-card__orders">

@@ -148,6 +148,52 @@
   border-radius: var(--radius-md);
   padding: var(--spacing-sm);
   background-color: var(--color-white);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Order Item in Selector */
+.order-item {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.order-item:hover {
+  background-color: #f9fafb;
+  border-color: #3b82f6;
+}
+
+.order-item .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.order-item .order-info {
+  flex: 1;
+  min-width: 0; /* Previne overflow */
+}
+
+.order-item .order-info strong {
+  display: block;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 2px;
+}
+
+.order-item .order-info small {
+  display: block;
+  color: #6b7280;
+  font-size: 12px;
 }
 
 .order-selector-item {
@@ -472,6 +518,9 @@
   background: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 0; /* Previne expansão desnecessária */
 }
 
 .selected-orders-header {
@@ -548,6 +597,25 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* Modal form group fixes */
+.form__group {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Prevent modal content from expanding */
+.modal__content {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Fix for order selector container */
+#available-orders {
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .shipping-badge--shipped {

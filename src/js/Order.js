@@ -133,11 +133,6 @@ export class Order {
       return false;
     }
 
-    if (!data.customerName) {
-      window.app.ui.showToast("Nome do cliente é obrigatório", "error");
-      return false;
-    }
-
     if (!data.productName) {
       window.app.ui.showToast("Nome do produto é obrigatório", "error");
       return false;
