@@ -232,7 +232,7 @@ export class Store {
   async addOrder(orderData) {
     console.log("=== INÍCIO addOrder ===");
     console.log("Dados do pedido:", orderData);
-    
+
     const now = new Date().toISOString();
     const order = {
       id: orderData.id,
@@ -264,6 +264,10 @@ export class Store {
         }
       } catch (error) {
         console.error("Erro ao salvar no Firebase:", error);
+        if (error.code === "resource-exhausted") {
+          console.log("Cota excedida detectada, definindo quotaExceeded = true");
+          this.firebase.quotaExceeded = true;
+        }
       }
     } else {
       console.log("Firebase não disponível ou cota excedida, pulando Firebase");
@@ -280,10 +284,10 @@ export class Store {
     console.log("=== INÍCIO updateOrder ===");
     console.log("ID do pedido:", id);
     console.log("Dados do pedido:", orderData);
-    
+
     const orderIndex = this.orders.findIndex((order) => order.id === id);
     console.log("Índice do pedido encontrado:", orderIndex);
-    
+
     if (orderIndex === -1) {
       console.error("Pedido não encontrado:", id);
       return null;
@@ -291,7 +295,7 @@ export class Store {
 
     const oldOrder = this.orders[orderIndex];
     console.log("Pedido antigo:", oldOrder);
-    
+
     const newOrder = {
       ...oldOrder,
       ...orderData,
@@ -318,10 +322,16 @@ export class Store {
         const result = await this.firebase.updateOrder(id, newOrder);
         console.log("Resultado do Firebase:", result);
         if (this.firebase.quotaExceeded) {
-          console.log("Cota excedida detectada durante atualização no Firebase");
+          console.log(
+            "Cota excedida detectada durante atualização no Firebase"
+          );
         }
       } catch (error) {
         console.error("Erro ao atualizar no Firebase:", error);
+        if (error.code === "resource-exhausted") {
+          console.log("Cota excedida detectada, definindo quotaExceeded = true");
+          this.firebase.quotaExceeded = true;
+        }
       }
     } else {
       console.log("Firebase não disponível ou cota excedida, pulando Firebase");
@@ -337,7 +347,7 @@ export class Store {
   async deleteOrder(id) {
     console.log("=== INÍCIO deleteOrder ===");
     console.log("ID do pedido:", id);
-    
+
     const order = this.getOrder(id);
     if (!order) {
       console.error("Pedido não encontrado:", id);
@@ -365,6 +375,10 @@ export class Store {
         }
       } catch (error) {
         console.error("Erro ao deletar no Firebase:", error);
+        if (error.code === "resource-exhausted") {
+          console.log("Cota excedida detectada, definindo quotaExceeded = true");
+          this.firebase.quotaExceeded = true;
+        }
       }
     } else {
       console.log("Firebase não disponível ou cota excedida, pulando Firebase");
@@ -423,10 +437,10 @@ export class Store {
     console.log("=== INÍCIO updateBatch ===");
     console.log("Código do lote:", code);
     console.log("Dados do lote:", batchData);
-    
+
     const batchIndex = this.batches.findIndex((batch) => batch.code === code);
     console.log("Índice do lote encontrado:", batchIndex);
-    
+
     if (batchIndex === -1) {
       console.error("Lote não encontrado:", code);
       return null;
@@ -434,7 +448,7 @@ export class Store {
 
     const oldBatch = this.batches[batchIndex];
     console.log("Lote antigo:", oldBatch);
-    
+
     const newBatch = {
       ...oldBatch,
       ...batchData,
@@ -447,10 +461,11 @@ export class Store {
     console.log("Verificando mudanças de pedidos...");
     console.log("Pedidos antigos:", oldBatch.orderIds);
     console.log("Pedidos novos:", newBatch.orderIds);
-    
-    const pedidosMudaram = JSON.stringify(newBatch.orderIds) !== JSON.stringify(oldBatch.orderIds);
+
+    const pedidosMudaram =
+      JSON.stringify(newBatch.orderIds) !== JSON.stringify(oldBatch.orderIds);
     console.log("Pedidos mudaram?", pedidosMudaram);
-    
+
     if (pedidosMudaram) {
       console.log("Pedidos mudaram, atualizando associações...");
       // Remover associações antigas
@@ -475,7 +490,7 @@ export class Store {
       console.log("- Firebase inicializado:", this.firebase.isInitialized);
       console.log("- Pedidos removidos:", removedOrderIds.length);
       console.log("- Cota excedida:", this.firebase.quotaExceeded);
-      
+
       if (
         this.firebase.isInitialized &&
         removedOrderIds.length > 0 &&
@@ -490,7 +505,9 @@ export class Store {
               console.log(`Pedido ${orderId} atualizado no Firebase:`, result);
               // Verificar se a cota foi excedida durante a atualização
               if (this.firebase.quotaExceeded) {
-                console.log("Cota excedida detectada durante atualização, parando processo");
+                console.log(
+                  "Cota excedida detectada durante atualização, parando processo"
+                );
                 break;
               }
             }
@@ -512,7 +529,9 @@ export class Store {
           }
         }
       } else {
-        console.log("Pulando atualização no Firebase (não inicializado, sem pedidos removidos ou cota excedida)");
+        console.log(
+          "Pulando atualização no Firebase (não inicializado, sem pedidos removidos ou cota excedida)"
+        );
       }
 
       // Adicionar novas associações
@@ -667,7 +686,7 @@ export class Store {
     console.log("=== INÍCIO associateOrdersToBatch ===");
     console.log("OrderIds:", orderIds);
     console.log("BatchCode:", batchCode);
-    
+
     const batch = this.getBatch(batchCode);
     if (!batch) {
       console.error("Lote não encontrado para associação:", batchCode);
@@ -686,7 +705,9 @@ export class Store {
         );
         console.log(`Pedido ${orderId} associado ao lote ${batchCode}`);
       } else {
-        console.log(`Pedido ${orderId} não pode ser associado (tipo: ${order?.shippingType})`);
+        console.log(
+          `Pedido ${orderId} não pode ser associado (tipo: ${order?.shippingType})`
+        );
       }
     });
 
