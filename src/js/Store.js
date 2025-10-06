@@ -310,6 +310,7 @@ export class Store {
       status: batchData.status || "CRIADO",
       notes: batchData.notes || "",
       orderIds: batchData.orderIds || [],
+      isShipped: batchData.isShipped || false, // Novo campo para status de envio
       createdAt: now,
       updatedAt: now,
     };
@@ -465,13 +466,45 @@ export class Store {
     return batch;
   }
 
-  updateBatchTracking(code, tracking) {
+  async updateBatchTracking(code, tracking) {
     const batch = this.getBatch(code);
     if (!batch) return null;
 
     batch.inboundTracking = tracking;
     batch.updatedAt = new Date().toISOString();
-    this.saveData();
+    
+    // Se adicionou rastreio, marcar como enviado automaticamente
+    if (tracking && tracking.trim() !== "") {
+      batch.isShipped = true;
+    }
+
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.updateBatch(code, batch);
+    }
+
+    await this.saveData();
+    return batch;
+  }
+
+  async updateBatchNotes(code, notes) {
+    const batch = this.getBatch(code);
+    if (!batch) return null;
+
+    batch.notes = notes;
+    batch.updatedAt = new Date().toISOString();
+    
+    // Se adicionou notas, marcar como enviado automaticamente
+    if (notes && notes.trim() !== "") {
+      batch.isShipped = true;
+    }
+
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.updateBatch(code, batch);
+    }
+
+    await this.saveData();
     return batch;
   }
 
@@ -701,6 +734,96 @@ export class Store {
     return batch.orderIds
       .map((orderId) => this.getOrder(orderId))
       .filter((order) => order !== undefined);
+  }
+
+  // Métodos para gerenciar status de envio dos lotes
+  async updateBatchShippingStatus(code, isShipped) {
+    const batch = this.getBatch(code);
+    if (!batch) return null;
+
+    batch.isShipped = isShipped;
+    batch.updatedAt = new Date().toISOString();
+
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.updateBatch(code, batch);
+    }
+
+    await this.saveData();
+    return batch;
+  }
+
+  // Métodos para gerenciar fornecedores
+  getSuppliers() {
+    return this.suppliers || [];
+  }
+
+  getSupplier(id) {
+    return this.suppliers?.find(supplier => supplier.id === id);
+  }
+
+  getFavoriteSupplier() {
+    return this.suppliers?.find(supplier => supplier.isFavorite) || null;
+  }
+
+  async addSupplier(supplierData) {
+    if (!this.suppliers) {
+      this.suppliers = [];
+    }
+
+    const supplier = {
+      id: `supplier_${Date.now()}`,
+      name: supplierData.name,
+      contact: supplierData.contact || "",
+      email: supplierData.email || "",
+      phone: supplierData.phone || "",
+      address: supplierData.address || "",
+      isFavorite: supplierData.isFavorite || false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Se este fornecedor for marcado como favorito, desmarcar os outros
+    if (supplier.isFavorite) {
+      this.suppliers.forEach(s => s.isFavorite = false);
+    }
+
+    this.suppliers.push(supplier);
+    await this.saveData();
+    return supplier;
+  }
+
+  async updateSupplier(id, supplierData) {
+    if (!this.suppliers) return null;
+
+    const supplierIndex = this.suppliers.findIndex(s => s.id === id);
+    if (supplierIndex === -1) return null;
+
+    const updatedSupplier = {
+      ...this.suppliers[supplierIndex],
+      ...supplierData,
+      id: this.suppliers[supplierIndex].id, // Não permitir mudança de ID
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Se este fornecedor for marcado como favorito, desmarcar os outros
+    if (updatedSupplier.isFavorite) {
+      this.suppliers.forEach(s => {
+        if (s.id !== id) s.isFavorite = false;
+      });
+    }
+
+    this.suppliers[supplierIndex] = updatedSupplier;
+    await this.saveData();
+    return updatedSupplier;
+  }
+
+  async deleteSupplier(id) {
+    if (!this.suppliers) return false;
+
+    this.suppliers = this.suppliers.filter(s => s.id !== id);
+    await this.saveData();
+    return true;
   }
 
   searchOrders(query, filters = {}) {

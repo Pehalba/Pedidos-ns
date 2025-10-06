@@ -7,6 +7,7 @@ import { Filters } from "./Filters.js";
 import { Printing } from "./Printing.js";
 import { Utils } from "./Utils.js";
 import { AuthService } from "./AuthService.js";
+import { Supplier } from "./Supplier.js";
 
 class App {
   constructor() {
@@ -19,6 +20,7 @@ class App {
     this.printing = new Printing();
     this.utils = new Utils();
     this.auth = new AuthService();
+    this.supplier = new Supplier(this.store);
 
     this.currentView = "dashboard";
     this.init();

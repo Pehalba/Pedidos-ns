@@ -380,17 +380,21 @@ export class Batch {
     this.showToast("Status atualizado com sucesso", "success");
   }
 
-  updateBatchTracking(tracking) {
+  async updateBatchTracking(tracking) {
     if (!this.currentBatchCode) return;
     if (!this.store || typeof this.store.updateBatchTracking !== "function") {
       console.error("Store ou método updateBatchTracking não disponível");
       return;
     }
 
-    this.store.updateBatchTracking(this.currentBatchCode, tracking);
+    try {
+      await this.store.updateBatchTracking(this.currentBatchCode, tracking);
+    } catch (error) {
+      console.error("Erro ao atualizar rastreio:", error);
+    }
   }
 
-  addTracking(batchCode) {
+  async addTracking(batchCode) {
     const tracking = prompt("Digite o código de rastreio:");
     if (!tracking) return;
 
@@ -399,9 +403,14 @@ export class Batch {
       return;
     }
 
-    this.store.updateBatchTracking(batchCode, tracking.trim());
-    this.showToast("Código de rastreio adicionado", "success");
-    window.app.renderDashboard();
+    try {
+      await this.store.updateBatchTracking(batchCode, tracking.trim());
+      this.showToast("Código de rastreio adicionado", "success");
+      window.app.renderDashboard();
+    } catch (error) {
+      console.error("Erro ao adicionar rastreio:", error);
+      this.showToast("Erro ao adicionar rastreio", "error");
+    }
   }
 
   async toggleDestination(batchCode) {
