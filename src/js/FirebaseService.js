@@ -199,4 +199,48 @@ export class FirebaseService {
       console.error("Erro ao sincronizar do localStorage:", error);
     }
   }
+
+  // Métodos para fornecedores
+  async getSuppliers() {
+    try {
+      const snapshot = await this.db.collection("suppliers").get();
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+    } catch (error) {
+      console.error("Erro ao buscar fornecedores:", error);
+      return [];
+    }
+  }
+
+  async addSupplier(supplierData) {
+    try {
+      const docRef = await this.db.collection("suppliers").add(supplierData);
+      return docRef.id;
+    } catch (error) {
+      console.error("Erro ao adicionar fornecedor:", error);
+      throw error;
+    }
+  }
+
+  async updateSupplier(id, supplierData) {
+    try {
+      await this.db.collection("suppliers").doc(id).set(supplierData);
+      return true;
+    } catch (error) {
+      console.error("Erro ao atualizar fornecedor:", error);
+      throw error;
+    }
+  }
+
+  async deleteSupplier(id) {
+    try {
+      await this.db.collection("suppliers").doc(id).delete();
+      return true;
+    } catch (error) {
+      console.error("Erro ao excluir fornecedor:", error);
+      throw error;
+    }
+  }
 }

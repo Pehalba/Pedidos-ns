@@ -37,14 +37,17 @@ export class Store {
         try {
           const orders = await this.firebase.getOrders();
           const batches = await this.firebase.getBatches();
+          const suppliers = await this.firebase.getSuppliers();
 
           console.log("Dados recebidos do Firebase:", {
             orders: orders?.length || 0,
             batches: batches?.length || 0,
+            suppliers: suppliers?.length || 0,
           });
 
           this.orders = orders || [];
           this.batches = batches || [];
+          this.suppliers = suppliers || [];
 
           // Debug: verificar dados carregados do Firebase
           console.log("=== DEBUG loadData Firebase ===");
@@ -103,6 +106,7 @@ export class Store {
         const parsed = JSON.parse(data);
         this.orders = parsed.orders || [];
         this.batches = parsed.batches || [];
+        this.suppliers = parsed.suppliers || [];
 
         // Migração: se um lote não tiver name, definir name = code
         this.batches.forEach((batch) => {
@@ -148,6 +152,7 @@ export class Store {
       const data = {
         orders: this.orders,
         batches: this.batches,
+        suppliers: this.suppliers || [],
       };
       localStorage.setItem(this.storageKey, JSON.stringify(data));
 
@@ -830,6 +835,17 @@ export class Store {
     }
 
     this.suppliers.push(supplier);
+
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      try {
+        const firebaseId = await this.firebase.addSupplier(supplier);
+        supplier.firebaseId = firebaseId; // Guardar o ID do Firebase
+      } catch (error) {
+        console.error("Erro ao salvar fornecedor no Firebase:", error);
+      }
+    }
+
     await this.saveData();
     return supplier;
   }
@@ -855,6 +871,16 @@ export class Store {
     }
 
     this.suppliers[supplierIndex] = updatedSupplier;
+
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      try {
+        await this.firebase.updateSupplier(updatedSupplier.firebaseId || id, updatedSupplier);
+      } catch (error) {
+        console.error("Erro ao atualizar fornecedor no Firebase:", error);
+      }
+    }
+
     await this.saveData();
     return updatedSupplier;
   }
@@ -862,7 +888,18 @@ export class Store {
   async deleteSupplier(id) {
     if (!this.suppliers) return false;
 
+    const supplier = this.suppliers.find((s) => s.id === id);
     this.suppliers = this.suppliers.filter((s) => s.id !== id);
+
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized && supplier) {
+      try {
+        await this.firebase.deleteSupplier(supplier.firebaseId || id);
+      } catch (error) {
+        console.error("Erro ao excluir fornecedor no Firebase:", error);
+      }
+    }
+
     await this.saveData();
     return true;
   }
