@@ -32,6 +32,12 @@ export class Batch {
       if (e.target.id === "clear-all-selected") {
         this.clearAllSelectedOrders();
       }
+
+      if (e.target.id === "manage-batch-suppliers-btn") {
+        if (window.app.supplier) {
+          window.app.supplier.openSuppliersModal();
+        }
+      }
     });
 
     // Event listener para o overlay (fechar modal ao clicar fora)
@@ -87,6 +93,9 @@ export class Batch {
       titleElement.textContent = "Novo Lote";
     }
 
+    // Carregar fornecedores
+    this.updateBatchSupplierSelect();
+
     this.updateSelectedOrdersDisplay(); // Atualizar exibição das seleções
     this.showModal();
     this.setupModalEventListeners();
@@ -105,6 +114,9 @@ export class Batch {
     if (titleElement) {
       titleElement.textContent = "Editar Lote";
     }
+
+    // Carregar fornecedores
+    this.updateBatchSupplierSelect();
 
     this.updateSelectedOrdersDisplay(); // Atualizar exibição das seleções
     this.showModal();
@@ -166,6 +178,11 @@ export class Batch {
     const notesInput = document.getElementById("batch-notes");
     if (notesInput) {
       notesInput.value = batch.notes || "";
+    }
+
+    const supplierInput = document.getElementById("batch-supplier");
+    if (supplierInput) {
+      supplierInput.value = batch.supplierId || "";
     }
 
     const statusSelect = document.getElementById("batch-status");
@@ -302,6 +319,29 @@ export class Batch {
     this.updateSelectedOrdersDisplay();
   }
 
+  updateBatchSupplierSelect() {
+    const select = document.getElementById("batch-supplier");
+    if (!select) return;
+
+    const suppliers = this.store.getSuppliers();
+    const favoriteSupplier = this.store.getFavoriteSupplier();
+
+    // Limpar opções existentes (exceto a primeira)
+    select.innerHTML = '<option value="">Selecionar fornecedor...</option>';
+
+    // Adicionar fornecedores
+    suppliers.forEach((supplier) => {
+      const option = document.createElement("option");
+      option.value = supplier.id;
+      option.textContent = supplier.name;
+      if (supplier.isFavorite) {
+        option.textContent += " ⭐";
+        option.selected = true; // Selecionar o favorito por padrão
+      }
+      select.appendChild(option);
+    });
+  }
+
   async saveBatch() {
     console.log("saveBatch chamado");
 
@@ -324,6 +364,7 @@ export class Batch {
       name: nameInput.value.trim(),
       inboundTracking: trackingInput ? trackingInput.value.trim() : "",
       notes: notesInput ? notesInput.value.trim() : "",
+      supplierId: document.getElementById("batch-supplier").value || "",
       orderIds: this.selectedOrderIds,
     };
 

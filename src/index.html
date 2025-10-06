@@ -344,6 +344,19 @@
               <textarea id="batch-notes" class="form__textarea"></textarea>
             </div>
             <div class="form__group">
+              <label for="batch-supplier" class="form__label">Fornecedor</label>
+              <select id="batch-supplier" class="form__select">
+                <option value="">Selecionar fornecedor...</option>
+              </select>
+              <button
+                type="button"
+                class="btn btn--small btn--secondary"
+                id="manage-batch-suppliers-btn"
+              >
+                Gerenciar Fornecedores
+              </button>
+            </div>
+            <div class="form__group">
               <label class="form__label">Selecionar Pedidos</label>
               <input
                 type="text"
@@ -455,19 +468,6 @@
                 <option value="AGUARDANDO">Aguardando</option>
                 <option value="CANCELADO">Cancelado</option>
               </select>
-            </div>
-            <div class="form__group">
-              <label for="order-supplier" class="form__label">Fornecedor</label>
-              <select id="order-supplier" class="form__select">
-                <option value="">Selecionar fornecedor...</option>
-              </select>
-              <button
-                type="button"
-                class="btn btn--small btn--secondary"
-                id="manage-suppliers-btn"
-              >
-                Gerenciar Fornecedores
-              </button>
             </div>
             <div class="form__group">
               <label for="order-notes" class="form__label">Notas</label>

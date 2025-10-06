@@ -150,6 +150,11 @@ export class UI {
             }">
               ${batch.isShipped ? "📦 Enviado" : "⏳ Não Enviado"}
             </span>
+            ${batch.supplierId ? `
+              <span class="supplier-badge">
+                🏢 ${this.getSupplierName(batch.supplierId)}
+              </span>
+            ` : ''}
           </div>
           
           <div class="batch-card__orders">
@@ -598,5 +603,11 @@ export class UI {
     }
 
     return html;
+  }
+
+  getSupplierName(supplierId) {
+    if (!window.app || !window.app.store) return "Fornecedor não encontrado";
+    const supplier = window.app.store.getSupplier(supplierId);
+    return supplier ? supplier.name : "Fornecedor não encontrado";
   }
 }

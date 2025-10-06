@@ -321,6 +321,7 @@ export class Store {
       notes: batchData.notes || "",
       orderIds: batchData.orderIds || [],
       isShipped: batchData.isShipped || false, // Novo campo para status de envio
+      supplierId: batchData.supplierId || "", // Campo para fornecedor
       createdAt: now,
       updatedAt: now,
     };

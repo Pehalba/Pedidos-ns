@@ -186,10 +186,6 @@ export class Order {
   }
 
   showModal() {
-    // Atualizar lista de fornecedores antes de abrir o modal
-    if (window.app.supplier) {
-      window.app.supplier.updateOrderSupplierSelect();
-    }
     window.app.ui.showModal("order-modal");
   }
 
@@ -353,7 +349,6 @@ export class Order {
       sku: data.sku?.trim() || "",
       shippingType: data.shippingType?.toUpperCase() || "PADRAO",
       paymentStatus: data.paymentStatus?.toUpperCase() || "AGUARDANDO",
-      supplierId: data.supplierId || "", // Novo campo para fornecedor
       notes: data.notes?.trim() || "",
     };
   }

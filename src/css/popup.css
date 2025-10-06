@@ -562,6 +562,21 @@
   border: 1px solid #fde68a;
 }
 
+/* Supplier Badge */
+.supplier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 8px;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+}
+
 /* Suppliers Styles */
 .suppliers-actions {
   margin-bottom: 20px;
