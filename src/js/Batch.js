@@ -195,29 +195,37 @@ export class Batch {
     // Verificar integridade dos dados antes de carregar pedidos disponíveis
     this.store.checkDataIntegrity();
 
-    const availableOrders = this.store
-      .getOrders()
-      .filter(
-        (order) =>
-          order.shippingType === "PADRAO" &&
-          order.paymentStatus === "PAGO" &&
-          !order.batchCode
-      );
+    const allOrders = this.store.getOrders();
+    console.log("Total de pedidos:", allOrders.length);
+
+    const availableOrders = allOrders.filter(
+      (order) =>
+        order.shippingType === "PADRAO" &&
+        order.paymentStatus === "PAGO" &&
+        !order.batchCode
+    );
+
+    console.log("Pedidos disponíveis para lote:", availableOrders.length);
+    console.log("Pedidos disponíveis:", availableOrders);
 
     this.renderAvailableOrders(availableOrders);
   }
 
   renderAvailableOrders(orders) {
     const container = document.getElementById("available-orders");
-    if (!container) return;
+    console.log("Container available-orders:", container);
+    
+    if (!container) {
+      console.error("Container available-orders não encontrado!");
+      return;
+    }
 
-    // Preservar o tamanho atual do container
-    const currentWidth = container.style.width || container.offsetWidth + 'px';
-    const currentHeight = container.style.height || container.offsetHeight + 'px';
+    console.log("Renderizando pedidos:", orders.length);
 
     if (orders.length === 0) {
       container.innerHTML =
         '<p class="text-muted">Nenhum pedido disponível</p>';
+      console.log("Nenhum pedido disponível - mostrando mensagem");
       return;
     }
 
@@ -245,11 +253,6 @@ export class Batch {
       .join("");
 
     container.innerHTML = ordersHtml;
-    
-    // Restaurar o tamanho do container
-    container.style.width = currentWidth;
-    container.style.height = currentHeight;
-    
     this.updateSelectedOrdersDisplay();
   }
 
