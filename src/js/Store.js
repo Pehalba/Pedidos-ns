@@ -374,20 +374,29 @@ export class Store {
     console.log("Novo lote:", newBatch);
 
     // Se mudaram os pedidos, atualizar associações
-    if (
-      JSON.stringify(newBatch.orderIds) !== JSON.stringify(oldBatch.orderIds)
-    ) {
+    console.log("Verificando mudanças de pedidos...");
+    console.log("Pedidos antigos:", oldBatch.orderIds);
+    console.log("Pedidos novos:", newBatch.orderIds);
+    
+    const pedidosMudaram = JSON.stringify(newBatch.orderIds) !== JSON.stringify(oldBatch.orderIds);
+    console.log("Pedidos mudaram?", pedidosMudaram);
+    
+    if (pedidosMudaram) {
+      console.log("Pedidos mudaram, atualizando associações...");
       // Remover associações antigas
       const removedOrderIds = oldBatch.orderIds.filter(
         (id) => !newBatch.orderIds.includes(id)
       );
+      console.log("Pedidos a serem removidos:", removedOrderIds);
 
       // Atualizar pedidos removidos localmente
+      console.log("Removendo pedidos do lote localmente...");
       removedOrderIds.forEach((orderId) => {
         const order = this.getOrder(orderId);
         if (order) {
           delete order.batchCode;
           delete order.internalTag;
+          console.log(`Pedido ${orderId} removido do lote`);
         }
       });
 
@@ -397,11 +406,13 @@ export class Store {
         removedOrderIds.length > 0 &&
         !this.firebase.quotaExceeded
       ) {
+        console.log("Atualizando pedidos removidos no Firebase...");
         try {
           for (const orderId of removedOrderIds) {
             const order = this.getOrder(orderId);
             if (order) {
               await this.firebase.updateOrder(orderId, order);
+              console.log(`Pedido ${orderId} atualizado no Firebase`);
             }
           }
           console.log(
@@ -420,12 +431,20 @@ export class Store {
             );
           }
         }
+      } else {
+        console.log("Pulando atualização no Firebase (não inicializado, sem pedidos removidos ou cota excedida)");
       }
 
       // Adicionar novas associações
       if (newBatch.orderIds.length > 0) {
+        console.log("Associando novos pedidos ao lote...");
         await this.associateOrdersToBatch(newBatch.orderIds, code);
+        console.log("Novos pedidos associados com sucesso");
+      } else {
+        console.log("Nenhum pedido novo para associar");
       }
+    } else {
+      console.log("Pedidos não mudaram, pulando atualização de associações");
     }
 
     this.batches[batchIndex] = newBatch;
