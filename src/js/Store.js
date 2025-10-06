@@ -229,10 +229,20 @@ export class Store {
     return this.orders.find((order) => order.id === id);
   }
 
+  // Função helper para operações do Firebase com timeout
+  async withFirebaseTimeout(operation, timeoutMs = 5000) {
+    return Promise.race([
+      operation(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Firebase timeout')), timeoutMs)
+      )
+    ]);
+  }
+
   async addOrder(orderData) {
     console.log("=== INÍCIO addOrder ===");
     console.log("Dados do pedido:", orderData);
-
+    
     const now = new Date().toISOString();
     const order = {
       id: orderData.id,
@@ -257,7 +267,7 @@ export class Store {
     if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
       console.log("Tentando salvar pedido no Firebase...");
       try {
-        const result = await this.firebase.addOrder(order);
+        const result = await this.withFirebaseTimeout(() => this.firebase.addOrder(order));
         console.log("Resultado do Firebase:", result);
         if (result === null) {
           console.log("Firebase retornou null, cota pode ter sido excedida");
@@ -268,10 +278,8 @@ export class Store {
         }
       } catch (error) {
         console.error("Erro ao salvar no Firebase:", error);
-        if (error.code === "resource-exhausted") {
-          console.log(
-            "Cota excedida detectada, definindo quotaExceeded = true"
-          );
+        if (error.code === "resource-exhausted" || error.message === 'Firebase timeout') {
+          console.log("Cota excedida ou timeout detectado, definindo quotaExceeded = true");
           this.firebase.quotaExceeded = true;
         }
       }
@@ -325,7 +333,7 @@ export class Store {
     if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
       console.log("Tentando atualizar pedido no Firebase...");
       try {
-        const result = await this.firebase.updateOrder(id, newOrder);
+        const result = await this.withFirebaseTimeout(() => this.firebase.updateOrder(id, newOrder));
         console.log("Resultado do Firebase:", result);
         if (result === false) {
           console.log("Firebase retornou false, cota pode ter sido excedida");
@@ -338,9 +346,9 @@ export class Store {
         }
       } catch (error) {
         console.error("Erro ao atualizar no Firebase:", error);
-        if (error.code === "resource-exhausted") {
+        if (error.code === "resource-exhausted" || error.message === 'Firebase timeout') {
           console.log(
-            "Cota excedida detectada, definindo quotaExceeded = true"
+            "Cota excedida ou timeout detectado, definindo quotaExceeded = true"
           );
           this.firebase.quotaExceeded = true;
         }
@@ -380,7 +388,7 @@ export class Store {
     if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
       console.log("Tentando deletar pedido no Firebase...");
       try {
-        const result = await this.firebase.deleteOrder(id);
+        const result = await this.withFirebaseTimeout(() => this.firebase.deleteOrder(id));
         console.log("Resultado do Firebase:", result);
         if (result === false) {
           console.log("Firebase retornou false, cota pode ter sido excedida");
@@ -391,9 +399,9 @@ export class Store {
         }
       } catch (error) {
         console.error("Erro ao deletar no Firebase:", error);
-        if (error.code === "resource-exhausted") {
+        if (error.code === "resource-exhausted" || error.message === 'Firebase timeout') {
           console.log(
-            "Cota excedida detectada, definindo quotaExceeded = true"
+            "Cota excedida ou timeout detectado, definindo quotaExceeded = true"
           );
           this.firebase.quotaExceeded = true;
         }
