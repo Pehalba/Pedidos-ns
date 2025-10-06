@@ -68,7 +68,12 @@ export class FirebaseService {
         });
       return orderData.id;
     } catch (error) {
-      console.error("Erro ao adicionar pedido:", error);
+      if (error.code === "resource-exhausted") {
+        console.warn("Cota do Firebase excedida ao adicionar pedido");
+        this.quotaExceeded = true;
+      } else {
+        console.error("Erro ao adicionar pedido:", error);
+      }
       return null;
     }
   }
@@ -102,7 +107,12 @@ export class FirebaseService {
       await this.db.collection("orders").doc(orderId).delete();
       return true;
     } catch (error) {
-      console.error("Erro ao deletar pedido:", error);
+      if (error.code === "resource-exhausted") {
+        console.warn("Cota do Firebase excedida ao deletar pedido");
+        this.quotaExceeded = true;
+      } else {
+        console.error("Erro ao deletar pedido:", error);
+      }
       return false;
     }
   }

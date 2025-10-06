@@ -230,6 +230,9 @@ export class Store {
   }
 
   async addOrder(orderData) {
+    console.log("=== INÍCIO addOrder ===");
+    console.log("Dados do pedido:", orderData);
+    
     const now = new Date().toISOString();
     const order = {
       id: orderData.id,
@@ -246,64 +249,131 @@ export class Store {
       updatedAt: now,
     };
 
+    console.log("Pedido criado:", order);
     this.orders.push(order);
+    console.log("Pedido adicionado ao array local");
 
     // Salvar no Firebase se disponível
-    if (this.firebase.isInitialized) {
-      await this.firebase.addOrder(order);
+    if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
+      console.log("Tentando salvar pedido no Firebase...");
+      try {
+        const result = await this.firebase.addOrder(order);
+        console.log("Resultado do Firebase:", result);
+        if (this.firebase.quotaExceeded) {
+          console.log("Cota excedida detectada durante salvamento no Firebase");
+        }
+      } catch (error) {
+        console.error("Erro ao salvar no Firebase:", error);
+      }
+    } else {
+      console.log("Firebase não disponível ou cota excedida, pulando Firebase");
     }
 
+    console.log("Salvando no localStorage...");
     await this.saveData();
+    console.log("Dados salvos no localStorage");
+    console.log("=== FIM addOrder ===");
     return order;
   }
 
   async updateOrder(id, orderData) {
+    console.log("=== INÍCIO updateOrder ===");
+    console.log("ID do pedido:", id);
+    console.log("Dados do pedido:", orderData);
+    
     const orderIndex = this.orders.findIndex((order) => order.id === id);
-    if (orderIndex === -1) return null;
+    console.log("Índice do pedido encontrado:", orderIndex);
+    
+    if (orderIndex === -1) {
+      console.error("Pedido não encontrado:", id);
+      return null;
+    }
 
     const oldOrder = this.orders[orderIndex];
+    console.log("Pedido antigo:", oldOrder);
+    
     const newOrder = {
       ...oldOrder,
       ...orderData,
       id: oldOrder.id, // Não permitir mudança de ID
       updatedAt: new Date().toISOString(),
     };
+    console.log("Novo pedido:", newOrder);
 
     // Se mudou para EXPRESSO e estava em um lote, desassociar
     if (newOrder.shippingType === "EXPRESSO" && oldOrder.batchCode) {
+      console.log("Pedido mudou para EXPRESSO, removendo do lote");
       this.removeOrderFromBatch(oldOrder.id, oldOrder.batchCode);
       delete newOrder.batchCode;
       delete newOrder.internalTag;
     }
 
     this.orders[orderIndex] = newOrder;
+    console.log("Pedido atualizado no array local");
 
     // Salvar no Firebase se disponível
-    if (this.firebase.isInitialized) {
-      await this.firebase.updateOrder(id, newOrder);
+    if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
+      console.log("Tentando atualizar pedido no Firebase...");
+      try {
+        const result = await this.firebase.updateOrder(id, newOrder);
+        console.log("Resultado do Firebase:", result);
+        if (this.firebase.quotaExceeded) {
+          console.log("Cota excedida detectada durante atualização no Firebase");
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar no Firebase:", error);
+      }
+    } else {
+      console.log("Firebase não disponível ou cota excedida, pulando Firebase");
     }
 
+    console.log("Salvando no localStorage...");
     await this.saveData();
+    console.log("Dados salvos no localStorage");
+    console.log("=== FIM updateOrder ===");
     return newOrder;
   }
 
   async deleteOrder(id) {
+    console.log("=== INÍCIO deleteOrder ===");
+    console.log("ID do pedido:", id);
+    
     const order = this.getOrder(id);
-    if (!order) return false;
+    if (!order) {
+      console.error("Pedido não encontrado:", id);
+      return false;
+    }
+    console.log("Pedido encontrado:", order);
 
     // Se estava em um lote, remover do lote
     if (order.batchCode) {
+      console.log("Pedido estava em lote, removendo do lote:", order.batchCode);
       this.removeOrderFromBatch(id, order.batchCode);
     }
 
     this.orders = this.orders.filter((order) => order.id !== id);
+    console.log("Pedido removido do array local");
 
     // Deletar do Firebase se disponível
-    if (this.firebase.isInitialized) {
-      await this.firebase.deleteOrder(id);
+    if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
+      console.log("Tentando deletar pedido no Firebase...");
+      try {
+        const result = await this.firebase.deleteOrder(id);
+        console.log("Resultado do Firebase:", result);
+        if (this.firebase.quotaExceeded) {
+          console.log("Cota excedida detectada durante exclusão no Firebase");
+        }
+      } catch (error) {
+        console.error("Erro ao deletar no Firebase:", error);
+      }
+    } else {
+      console.log("Firebase não disponível ou cota excedida, pulando Firebase");
     }
 
+    console.log("Salvando no localStorage...");
     await this.saveData();
+    console.log("Dados salvos no localStorage");
+    console.log("=== FIM deleteOrder ===");
     return true;
   }
 
