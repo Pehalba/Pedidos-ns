@@ -259,13 +259,19 @@ export class Store {
       try {
         const result = await this.firebase.addOrder(order);
         console.log("Resultado do Firebase:", result);
+        if (result === null) {
+          console.log("Firebase retornou null, cota pode ter sido excedida");
+          this.firebase.quotaExceeded = true;
+        }
         if (this.firebase.quotaExceeded) {
           console.log("Cota excedida detectada durante salvamento no Firebase");
         }
       } catch (error) {
         console.error("Erro ao salvar no Firebase:", error);
         if (error.code === "resource-exhausted") {
-          console.log("Cota excedida detectada, definindo quotaExceeded = true");
+          console.log(
+            "Cota excedida detectada, definindo quotaExceeded = true"
+          );
           this.firebase.quotaExceeded = true;
         }
       }
@@ -321,6 +327,10 @@ export class Store {
       try {
         const result = await this.firebase.updateOrder(id, newOrder);
         console.log("Resultado do Firebase:", result);
+        if (result === false) {
+          console.log("Firebase retornou false, cota pode ter sido excedida");
+          this.firebase.quotaExceeded = true;
+        }
         if (this.firebase.quotaExceeded) {
           console.log(
             "Cota excedida detectada durante atualização no Firebase"
@@ -329,7 +339,9 @@ export class Store {
       } catch (error) {
         console.error("Erro ao atualizar no Firebase:", error);
         if (error.code === "resource-exhausted") {
-          console.log("Cota excedida detectada, definindo quotaExceeded = true");
+          console.log(
+            "Cota excedida detectada, definindo quotaExceeded = true"
+          );
           this.firebase.quotaExceeded = true;
         }
       }
@@ -370,13 +382,19 @@ export class Store {
       try {
         const result = await this.firebase.deleteOrder(id);
         console.log("Resultado do Firebase:", result);
+        if (result === false) {
+          console.log("Firebase retornou false, cota pode ter sido excedida");
+          this.firebase.quotaExceeded = true;
+        }
         if (this.firebase.quotaExceeded) {
           console.log("Cota excedida detectada durante exclusão no Firebase");
         }
       } catch (error) {
         console.error("Erro ao deletar no Firebase:", error);
         if (error.code === "resource-exhausted") {
-          console.log("Cota excedida detectada, definindo quotaExceeded = true");
+          console.log(
+            "Cota excedida detectada, definindo quotaExceeded = true"
+          );
           this.firebase.quotaExceeded = true;
         }
       }
