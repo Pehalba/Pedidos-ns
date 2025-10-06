@@ -22,14 +22,14 @@ export class FirebaseService {
         projectId: "produtos-ns-66a51",
         storageBucket: "produtos-ns-66a51.firebasestorage.app",
         messagingSenderId: "133963604352",
-        appId: "1:133963604352:web:3fc7566d99373348c62165"
+        appId: "1:133963604352:web:3fc7566d99373348c62165",
       };
 
       // Inicializar Firebase
       firebase.initializeApp(firebaseConfig);
       this.db = firebase.firestore();
       this.isInitialized = true;
-      
+
       console.log("Firebase inicializado com sucesso!");
     } catch (error) {
       console.error("Erro ao inicializar Firebase:", error);
@@ -40,12 +40,12 @@ export class FirebaseService {
   // Métodos para Orders
   async getOrders() {
     if (!this.isInitialized) return [];
-    
+
     try {
-      const snapshot = await this.db.collection('orders').get();
-      return snapshot.docs.map(doc => ({
+      const snapshot = await this.db.collection("orders").get();
+      return snapshot.docs.map((doc) => ({
         id: doc.id, // Agora doc.id é o ID do pedido
-        ...doc.data()
+        ...doc.data(),
       }));
     } catch (error) {
       console.error("Erro ao buscar pedidos:", error);
@@ -57,11 +57,14 @@ export class FirebaseService {
     if (!this.isInitialized) return null;
     try {
       // Usar o ID do pedido como ID do documento
-      await this.db.collection('orders').doc(orderData.id).set({
-        ...orderData,
-        createdAt: orderData.createdAt || new Date().toISOString(),
-        updatedAt: orderData.updatedAt || new Date().toISOString()
-      });
+      await this.db
+        .collection("orders")
+        .doc(orderData.id)
+        .set({
+          ...orderData,
+          createdAt: orderData.createdAt || new Date().toISOString(),
+          updatedAt: orderData.updatedAt || new Date().toISOString(),
+        });
       return orderData.id;
     } catch (error) {
       console.error("Erro ao adicionar pedido:", error);
@@ -72,10 +75,13 @@ export class FirebaseService {
   async updateOrder(orderId, orderData) {
     if (!this.isInitialized) return false;
     try {
-      await this.db.collection('orders').doc(orderId).update({
-        ...orderData,
-        updatedAt: orderData.updatedAt || new Date().toISOString()
-      });
+      await this.db
+        .collection("orders")
+        .doc(orderId)
+        .update({
+          ...orderData,
+          updatedAt: orderData.updatedAt || new Date().toISOString(),
+        });
       return true;
     } catch (error) {
       console.error("Erro ao atualizar pedido:", error);
@@ -85,9 +91,9 @@ export class FirebaseService {
 
   async deleteOrder(orderId) {
     if (!this.isInitialized) return false;
-    
+
     try {
-      await this.db.collection('orders').doc(orderId).delete();
+      await this.db.collection("orders").doc(orderId).delete();
       return true;
     } catch (error) {
       console.error("Erro ao deletar pedido:", error);
@@ -98,12 +104,12 @@ export class FirebaseService {
   // Métodos para Batches
   async getBatches() {
     if (!this.isInitialized) return [];
-    
+
     try {
-      const snapshot = await this.db.collection('batches').get();
-      return snapshot.docs.map(doc => ({
+      const snapshot = await this.db.collection("batches").get();
+      return snapshot.docs.map((doc) => ({
         code: doc.id, // Agora doc.id é o código do lote
-        ...doc.data()
+        ...doc.data(),
       }));
     } catch (error) {
       console.error("Erro ao buscar lotes:", error);
@@ -113,14 +119,17 @@ export class FirebaseService {
 
   async addBatch(batchData) {
     if (!this.isInitialized) return null;
-    
+
     try {
       // Usar o código do lote como ID do documento
-      await this.db.collection('batches').doc(batchData.code).set({
-        ...batchData,
-        createdAt: batchData.createdAt || new Date().toISOString(),
-        updatedAt: batchData.updatedAt || new Date().toISOString()
-      });
+      await this.db
+        .collection("batches")
+        .doc(batchData.code)
+        .set({
+          ...batchData,
+          createdAt: batchData.createdAt || new Date().toISOString(),
+          updatedAt: batchData.updatedAt || new Date().toISOString(),
+        });
       return batchData.code;
     } catch (error) {
       console.error("Erro ao adicionar lote:", error);
@@ -130,12 +139,15 @@ export class FirebaseService {
 
   async updateBatch(batchCode, batchData) {
     if (!this.isInitialized) return false;
-    
+
     try {
-      await this.db.collection('batches').doc(batchCode).update({
-        ...batchData,
-        updatedAt: batchData.updatedAt || new Date().toISOString()
-      });
+      await this.db
+        .collection("batches")
+        .doc(batchCode)
+        .update({
+          ...batchData,
+          updatedAt: batchData.updatedAt || new Date().toISOString(),
+        });
       return true;
     } catch (error) {
       console.error("Erro ao atualizar lote:", error);
@@ -145,9 +157,9 @@ export class FirebaseService {
 
   async deleteBatch(batchCode) {
     if (!this.isInitialized) return false;
-    
+
     try {
-      await this.db.collection('batches').doc(batchCode).delete();
+      await this.db.collection("batches").doc(batchCode).delete();
       return true;
     } catch (error) {
       console.error("Erro ao deletar lote:", error);
@@ -158,18 +170,18 @@ export class FirebaseService {
   // Sincronização com localStorage
   async syncToLocalStorage() {
     if (!this.isInitialized) return;
-    
+
     try {
       const orders = await this.getOrders();
       const batches = await this.getBatches();
-      
+
       // Usar a mesma chave que o Store usa
       const data = {
         orders: orders,
         batches: batches,
       };
-      localStorage.setItem('consolidador:v1', JSON.stringify(data));
-      
+      localStorage.setItem("consolidador:v1", JSON.stringify(data));
+
       console.log("Dados sincronizados com localStorage");
     } catch (error) {
       console.error("Erro ao sincronizar com localStorage:", error);
@@ -178,22 +190,22 @@ export class FirebaseService {
 
   async syncFromLocalStorage() {
     if (!this.isInitialized) return;
-    
+
     try {
-      const data = JSON.parse(localStorage.getItem('consolidador:v1') || '{}');
+      const data = JSON.parse(localStorage.getItem("consolidador:v1") || "{}");
       const orders = data.orders || [];
       const batches = data.batches || [];
-      
+
       // Sincronizar pedidos
       for (const order of orders) {
         await this.addOrder(order);
       }
-      
+
       // Sincronizar lotes
       for (const batch of batches) {
         await this.addBatch(batch);
       }
-      
+
       console.log("Dados do localStorage sincronizados com Firebase");
     } catch (error) {
       console.error("Erro ao sincronizar do localStorage:", error);
@@ -216,8 +228,9 @@ export class FirebaseService {
 
   async addSupplier(supplierData) {
     try {
-      const docRef = await this.db.collection("suppliers").add(supplierData);
-      return docRef.id;
+      // Usar o ID do fornecedor como ID do documento
+      await this.db.collection("suppliers").doc(supplierData.id).set(supplierData);
+      return supplierData.id;
     } catch (error) {
       console.error("Erro ao adicionar fornecedor:", error);
       throw error;
@@ -226,7 +239,7 @@ export class FirebaseService {
 
   async updateSupplier(id, supplierData) {
     try {
-      await this.db.collection("suppliers").doc(id).set(supplierData);
+      await this.db.collection("suppliers").doc(id).update(supplierData);
       return true;
     } catch (error) {
       console.error("Erro ao atualizar fornecedor:", error);

@@ -839,8 +839,7 @@ export class Store {
     // Salvar no Firebase se disponível
     if (this.firebase.isInitialized) {
       try {
-        const firebaseId = await this.firebase.addSupplier(supplier);
-        supplier.firebaseId = firebaseId; // Guardar o ID do Firebase
+        await this.firebase.addSupplier(supplier);
       } catch (error) {
         console.error("Erro ao salvar fornecedor no Firebase:", error);
       }
@@ -875,7 +874,7 @@ export class Store {
     // Salvar no Firebase se disponível
     if (this.firebase.isInitialized) {
       try {
-        await this.firebase.updateSupplier(updatedSupplier.firebaseId || id, updatedSupplier);
+        await this.firebase.updateSupplier(id, updatedSupplier);
       } catch (error) {
         console.error("Erro ao atualizar fornecedor no Firebase:", error);
       }
@@ -894,7 +893,7 @@ export class Store {
     // Salvar no Firebase se disponível
     if (this.firebase.isInitialized && supplier) {
       try {
-        await this.firebase.deleteSupplier(supplier.firebaseId || id);
+        await this.firebase.deleteSupplier(id);
       } catch (error) {
         console.error("Erro ao excluir fornecedor no Firebase:", error);
       }
