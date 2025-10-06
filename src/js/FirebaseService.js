@@ -85,7 +85,12 @@ export class FirebaseService {
         });
       return true;
     } catch (error) {
-      console.error("Erro ao atualizar pedido:", error);
+      if (error.code === "resource-exhausted") {
+        console.warn("Cota do Firebase excedida ao atualizar pedido");
+        this.quotaExceeded = true;
+      } else {
+        console.error("Erro ao atualizar pedido:", error);
+      }
       return false;
     }
   }
@@ -151,7 +156,12 @@ export class FirebaseService {
         });
       return true;
     } catch (error) {
-      console.error("Erro ao atualizar lote:", error);
+      if (error.code === "resource-exhausted") {
+        console.warn("Cota do Firebase excedida ao atualizar lote");
+        this.quotaExceeded = true;
+      } else {
+        console.error("Erro ao atualizar lote:", error);
+      }
       return false;
     }
   }

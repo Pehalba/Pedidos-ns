@@ -401,6 +401,11 @@ export class Store {
       });
 
       // Atualizar pedidos removidos no Firebase
+      console.log("Verificando condições para atualização no Firebase:");
+      console.log("- Firebase inicializado:", this.firebase.isInitialized);
+      console.log("- Pedidos removidos:", removedOrderIds.length);
+      console.log("- Cota excedida:", this.firebase.quotaExceeded);
+      
       if (
         this.firebase.isInitialized &&
         removedOrderIds.length > 0 &&
@@ -411,8 +416,13 @@ export class Store {
           for (const orderId of removedOrderIds) {
             const order = this.getOrder(orderId);
             if (order) {
-              await this.firebase.updateOrder(orderId, order);
-              console.log(`Pedido ${orderId} atualizado no Firebase`);
+              const result = await this.firebase.updateOrder(orderId, order);
+              console.log(`Pedido ${orderId} atualizado no Firebase:`, result);
+              // Verificar se a cota foi excedida durante a atualização
+              if (this.firebase.quotaExceeded) {
+                console.log("Cota excedida detectada durante atualização, parando processo");
+                break;
+              }
             }
           }
           console.log(
