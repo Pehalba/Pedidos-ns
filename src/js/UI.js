@@ -146,9 +146,8 @@ export class UI {
               📦 ${batch.destination === "edu" ? "Edu" : "Pedro"}
             </button>
             <button class="shipping-toggle ${
-              !batch.isShipped ? "shipping-toggle--disabled" : ""
-            } ${
-              batch.isShipped && batch.isReceived ? "shipping-toggle--received" : "shipping-toggle--shipped"
+              !batch.isShipped ? "shipping-toggle--not-shipped" : 
+              (batch.isReceived ? "shipping-toggle--received" : "shipping-toggle--shipped")
             }" 
                     onclick="window.app.batch.toggleShippingStatus('${batch.code}')"
                     ${!batch.isShipped ? "disabled" : ""}>

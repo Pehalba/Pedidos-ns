@@ -410,7 +410,7 @@ body {
   overflow: hidden;
 }
 
-.shipping-toggle--disabled {
+.shipping-toggle--not-shipped {
   background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
   border-color: #f59e0b;
@@ -418,7 +418,7 @@ body {
   opacity: 0.6;
 }
 
-.shipping-toggle--disabled:hover {
+.shipping-toggle--not-shipped:hover {
   transform: none;
   box-shadow: none;
 }
