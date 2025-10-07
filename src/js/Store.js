@@ -165,24 +165,6 @@ export class Store {
     }
   }
 
-  async syncToFirebaseInBackground() {
-    try {
-      console.log("Sincronizando dados com Firebase em background...");
-
-      // Enviar dados atuais para o Firebase
-      for (const order of this.orders) {
-        await this.firebase.addOrder(order);
-      }
-
-      for (const batch of this.batches) {
-        await this.firebase.addBatch(batch);
-      }
-
-      console.log("Sincronização com Firebase concluída");
-    } catch (error) {
-      console.error("Erro na sincronização com Firebase:", error);
-    }
-  }
 
   calculateNextBatchNumber() {
     if (this.batches.length === 0) {
@@ -261,11 +243,29 @@ export class Store {
       try {
         // Sincronizar pedidos
         for (const order of this.orders) {
-          await this.firebase.addOrder(order);
+          try {
+            await this.firebase.updateOrder(order.id, order);
+          } catch (error) {
+            // Se falhar ao atualizar, tentar adicionar
+            if (error.code === "not-found") {
+              await this.firebase.addOrder(order);
+            } else {
+              console.error("Erro ao sincronizar pedido:", order.id, error);
+            }
+          }
         }
         // Sincronizar lotes
         for (const batch of this.batches) {
-          await this.firebase.addBatch(batch);
+          try {
+            await this.firebase.updateBatch(batch.code, batch);
+          } catch (error) {
+            // Se falhar ao atualizar, tentar adicionar
+            if (error.code === "not-found") {
+              await this.firebase.addBatch(batch);
+            } else {
+              console.error("Erro ao sincronizar lote:", batch.code, error);
+            }
+          }
         }
         // Sincronizar fornecedores
         for (const supplier of this.suppliers) {

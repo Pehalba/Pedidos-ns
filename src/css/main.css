@@ -424,16 +424,16 @@ body {
 }
 
 .shipping-toggle--shipped {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: white;
-  border-color: #f59e0b;
-  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+  border-color: #3b82f6;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
 .shipping-toggle--shipped:hover {
-  background: linear-gradient(135deg, #d97706, #b45309);
+  background: linear-gradient(135deg, #2563eb, #1e40af);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
 }
 
 .shipping-toggle--received {
