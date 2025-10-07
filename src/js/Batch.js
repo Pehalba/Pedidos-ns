@@ -533,7 +533,10 @@ export class Batch {
       // Atualizar UI
       window.app.renderDashboard();
       
-      const newStatus = batch.isReceived ? "Enviado" : "Recebido";
+      let newStatus = "Enviado";
+      if (batch.isReceived) newStatus = "Recebido";
+      else if (batch.isAbnormal) newStatus = "Status Anormal";
+      
       this.showToast(`Status alterado para ${newStatus}`, "success");
     } catch (error) {
       console.error("Erro ao alterar status de envio:", error);

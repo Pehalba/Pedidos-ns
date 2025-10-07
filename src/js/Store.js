@@ -416,6 +416,7 @@ export class Store {
       orderIds: batchData.orderIds || [],
       isShipped: batchData.isShipped || false, // Novo campo para status de envio
       isReceived: batchData.isReceived || false, // Campo para status de recebimento
+      isAbnormal: batchData.isAbnormal || false, // Campo para status anormal
       supplierId: batchData.supplierId || "", // Campo para fornecedor
       createdAt: now,
       updatedAt: now,
@@ -657,6 +658,12 @@ export class Store {
     if (tracking && tracking.trim() !== "") {
       batch.isShipped = true;
       batch.isReceived = false; // Reset para "Enviado" quando adiciona rastreio
+      batch.isAbnormal = false; // Reset para "Enviado" quando adiciona rastreio
+    } else {
+      // Se removeu rastreio, voltar para "Não Enviado"
+      batch.isShipped = false;
+      batch.isReceived = false;
+      batch.isAbnormal = false;
     }
 
     // Salvar no Firebase se disponível
@@ -699,7 +706,21 @@ export class Store {
       return null;
     }
 
-    batch.isReceived = !batch.isReceived;
+    // Ciclo: Enviado -> Recebido -> Anormal -> Enviado
+    if (!batch.isReceived && !batch.isAbnormal) {
+      // De Enviado para Recebido
+      batch.isReceived = true;
+      batch.isAbnormal = false;
+    } else if (batch.isReceived && !batch.isAbnormal) {
+      // De Recebido para Anormal
+      batch.isReceived = false;
+      batch.isAbnormal = true;
+    } else if (!batch.isReceived && batch.isAbnormal) {
+      // De Anormal para Enviado
+      batch.isReceived = false;
+      batch.isAbnormal = false;
+    }
+
     batch.updatedAt = new Date().toISOString();
 
     // Salvar no Firebase se disponível
@@ -1134,6 +1155,7 @@ export class Store {
         );
         batch.isShipped = true;
         batch.isReceived = batch.isReceived || false; // Garantir que o campo existe
+        batch.isAbnormal = batch.isAbnormal || false; // Garantir que o campo existe
         batch.updatedAt = new Date().toISOString();
         batchesToUpdate.push(batch);
         updatedBatches++;

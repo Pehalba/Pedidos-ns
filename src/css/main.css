@@ -449,6 +449,19 @@ body {
   box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
 }
 
+.shipping-toggle--abnormal {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border-color: #ef4444;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.shipping-toggle--abnormal:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+}
+
 .batch-card__actions {
   display: flex;
   gap: var(--spacing-sm);

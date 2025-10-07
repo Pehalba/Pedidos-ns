@@ -117,7 +117,7 @@ export class UI {
               <a href="https://pacotevicio.app/?code=${batch.inboundTracking}" target="_blank" class="tracking-code tracking-link">
                 ${batch.inboundTracking}
               </a>
-              <button class="btn btn--small" onclick="navigator.clipboard.writeText('${batch.inboundTracking}')">
+              <button class="btn btn--small" onclick="window.app.utils.copyToClipboard('${batch.inboundTracking}')">
                 Copiar
               </button>
             `
@@ -147,12 +147,14 @@ export class UI {
             </button>
             <button class="shipping-toggle ${
               !batch.isShipped ? "shipping-toggle--not-shipped" : 
-              (batch.isReceived ? "shipping-toggle--received" : "shipping-toggle--shipped")
+              (batch.isAbnormal ? "shipping-toggle--abnormal" :
+              (batch.isReceived ? "shipping-toggle--received" : "shipping-toggle--shipped"))
             }" 
                     onclick="window.app.batch.toggleShippingStatus('${batch.code}')"
                     ${!batch.isShipped ? "disabled" : ""}>
               ${!batch.isShipped ? "⏳ Não Enviado" : 
-                (batch.isReceived ? "✅ Recebido" : "📦 Enviado")}
+                (batch.isAbnormal ? "⚠️ Status Anormal" :
+                (batch.isReceived ? "✅ Recebido" : "📦 Enviado"))}
             </button>
             ${
               batch.supplierId
