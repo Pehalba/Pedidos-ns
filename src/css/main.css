@@ -411,9 +411,9 @@ body {
 }
 
 .shipping-toggle--disabled {
-  background: linear-gradient(135deg, #94a3b8, #64748b);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
-  border-color: #94a3b8;
+  border-color: #f59e0b;
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -424,16 +424,16 @@ body {
 }
 
 .shipping-toggle--shipped {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, #eab308, #ca8a04);
   color: white;
-  border-color: #3b82f6;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  border-color: #eab308;
+  box-shadow: 0 2px 4px rgba(234, 179, 8, 0.3);
 }
 
 .shipping-toggle--shipped:hover {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+  background: linear-gradient(135deg, #ca8a04, #a16207);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 8px rgba(234, 179, 8, 0.4);
 }
 
 .shipping-toggle--received {
