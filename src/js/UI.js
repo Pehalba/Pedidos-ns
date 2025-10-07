@@ -145,11 +145,16 @@ export class UI {
                     }')">
               📦 ${batch.destination === "edu" ? "Edu" : "Pedro"}
             </button>
-            <span class="shipping-badge shipping-badge--${
-              batch.isShipped ? "shipped" : "not-shipped"
-            }">
-              ${batch.isShipped ? "📦 Enviado" : "⏳ Não Enviado"}
-            </span>
+            <button class="shipping-toggle ${
+              !batch.isShipped ? "shipping-toggle--disabled" : ""
+            } ${
+              batch.isShipped && batch.isReceived ? "shipping-toggle--received" : "shipping-toggle--shipped"
+            }" 
+                    onclick="window.app.batch.toggleShippingStatus('${batch.code}')"
+                    ${!batch.isShipped ? "disabled" : ""}>
+              ${!batch.isShipped ? "⏳ Não Enviado" : 
+                (batch.isReceived ? "✅ Recebido" : "📦 Enviado")}
+            </button>
             ${
               batch.supplierId
                 ? `

@@ -508,6 +508,39 @@ export class Batch {
     }
   }
 
+  async toggleShippingStatus(batchCode) {
+    if (!this.store) {
+      console.error("Store não disponível");
+      return;
+    }
+
+    try {
+      const batch = this.store.getBatch(batchCode);
+      if (!batch) {
+        this.showToast("Lote não encontrado", "error");
+        return;
+      }
+
+      // Verificar se o lote foi enviado (tem rastreio)
+      if (!batch.isShipped) {
+        this.showToast("Adicione um código de rastreio primeiro", "error");
+        return;
+      }
+
+      // Alternar status de recebimento
+      await this.store.toggleBatchReceived(batchCode);
+
+      // Atualizar UI
+      window.app.renderDashboard();
+      
+      const newStatus = batch.isReceived ? "Enviado" : "Recebido";
+      this.showToast(`Status alterado para ${newStatus}`, "success");
+    } catch (error) {
+      console.error("Erro ao alterar status de envio:", error);
+      this.showToast("Erro ao alterar status de envio", "error");
+    }
+  }
+
   renderBatchDetail(batch) {
     const container = document.getElementById("batch-detail-content");
     if (!container) return;

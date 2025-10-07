@@ -415,6 +415,7 @@ export class Store {
       notes: batchData.notes || "",
       orderIds: batchData.orderIds || [],
       isShipped: batchData.isShipped || false, // Novo campo para status de envio
+      isReceived: batchData.isReceived || false, // Campo para status de recebimento
       supplierId: batchData.supplierId || "", // Campo para fornecedor
       createdAt: now,
       updatedAt: now,
@@ -655,6 +656,7 @@ export class Store {
     // Se adicionou rastreio, marcar como enviado automaticamente
     if (tracking && tracking.trim() !== "") {
       batch.isShipped = true;
+      batch.isReceived = false; // Reset para "Enviado" quando adiciona rastreio
     }
 
     // Salvar no Firebase se disponível
@@ -677,6 +679,28 @@ export class Store {
     if (notes && notes.trim() !== "") {
       batch.isShipped = true;
     }
+
+    // Salvar no Firebase se disponível
+    if (this.firebase.isInitialized) {
+      await this.firebase.updateBatch(code, batch);
+    }
+
+    await this.saveData();
+    return batch;
+  }
+
+  async toggleBatchReceived(code) {
+    const batch = this.getBatch(code);
+    if (!batch) return null;
+
+    // Só permite alternar se já foi enviado (tem rastreio)
+    if (!batch.isShipped) {
+      console.warn("Não é possível alterar status de recebimento: lote não foi enviado");
+      return null;
+    }
+
+    batch.isReceived = !batch.isReceived;
+    batch.updatedAt = new Date().toISOString();
 
     // Salvar no Firebase se disponível
     if (this.firebase.isInitialized) {
@@ -1109,6 +1133,7 @@ export class Store {
           `Atualizando lote ${batch.code}: tem rastreio/notas mas não está marcado como enviado`
         );
         batch.isShipped = true;
+        batch.isReceived = batch.isReceived || false; // Garantir que o campo existe
         batch.updatedAt = new Date().toISOString();
         batchesToUpdate.push(batch);
         updatedBatches++;

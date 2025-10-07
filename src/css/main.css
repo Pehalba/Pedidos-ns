@@ -392,6 +392,63 @@ body {
   box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
 }
 
+/* ===== SHIPPING TOGGLE BUTTON ===== */
+.shipping-toggle {
+  padding: 8px 16px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 120px;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.shipping-toggle--disabled {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+  color: white;
+  border-color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.shipping-toggle--disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.shipping-toggle--shipped {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border-color: #f59e0b;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+.shipping-toggle--shipped:hover {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4);
+}
+
+.shipping-toggle--received {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: #10b981;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+.shipping-toggle--received:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+}
+
 .batch-card__actions {
   display: flex;
   gap: var(--spacing-sm);
