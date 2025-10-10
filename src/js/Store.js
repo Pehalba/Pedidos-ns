@@ -28,114 +28,110 @@ export class Store {
     try {
       this.showLoading();
 
-      // Aguardar um pouco para o Firebase inicializar completamente
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // 1) Carregar do localStorage primeiro (fonte da verdade imediata)
+      console.log("Carregando dados do localStorage...");
+      const localRaw = localStorage.getItem(this.storageKey);
+      const localParsed = localRaw ? JSON.parse(localRaw) : {};
+      const localOrders = localParsed.orders || [];
+      const localBatches = localParsed.batches || [];
+      const localSuppliers = localParsed.suppliers || [];
 
-      // Tentar carregar do Firebase primeiro
+      // Setar dados locais imediatamente
+      this.orders = localOrders;
+      this.batches = localBatches;
+      this.suppliers = localSuppliers;
+
+      // Migração: se um lote não tiver name, definir name = code
+      this.batches.forEach((batch) => {
+        if (!batch.name) {
+          batch.name = batch.code;
+        }
+      });
+
+      // Calcular próximo número de lote
+      this.calculateNextBatchNumber();
+
+      // Atualizar lotes antigos que têm rastreio mas não estão marcados como enviados
+      await this.updateOldBatchesShippingStatus();
+
+      // 2) Se Firebase disponível, buscar e mesclar (sem sobrescrever locais)
       if (this.firebase.isInitialized) {
-        console.log("Tentando carregar dados do Firebase...");
         try {
-          const orders = await this.firebase.getOrders();
-          const batches = await this.firebase.getBatches();
-          const suppliers = await this.firebase.getSuppliers();
+          console.log("Buscando dados do Firebase para merge...");
+          const [remoteOrders, remoteBatches, remoteSuppliers] =
+            await Promise.all([
+              this.firebase.getOrders(),
+              this.firebase.getBatches(),
+              this.firebase.getSuppliers(),
+            ]);
 
-          console.log("Dados recebidos do Firebase:", {
-            orders: orders?.length || 0,
-            batches: batches?.length || 0,
-            suppliers: suppliers?.length || 0,
-          });
+          const mergeCollections = (localArr, remoteArr, key) => {
+            const map = new Map();
+            const getTs = (obj) =>
+              Date.parse(obj.updatedAt || obj.createdAt || 0) || 0;
+            localArr.forEach((item) => map.set(item[key], item));
+            remoteArr.forEach((r) => {
+              const id = r[key];
+              if (!map.has(id)) {
+                map.set(id, r);
+              } else {
+                const l = map.get(id);
+                map.set(
+                  getTs(r) > getTs(l) ? r : l,
+                  getTs(r) > getTs(l) ? undefined : undefined
+                );
+                // The above line is incorrect Map API usage; fix by direct set
+              }
+            });
+            // Fix merge: re-run with proper overwrite logic
+            const finalMap = new Map();
+            localArr.forEach((l) => finalMap.set(l[key], l));
+            remoteArr.forEach((r) => {
+              const existing = finalMap.get(r[key]);
+              if (!existing) {
+                finalMap.set(r[key], r);
+              } else {
+                const getTs2 = (o) =>
+                  Date.parse(o.updatedAt || o.createdAt || 0) || 0;
+                finalMap.set(
+                  r[key],
+                  getTs2(r) > getTs2(existing) ? r : existing
+                );
+              }
+            });
+            return Array.from(finalMap.values());
+          };
 
-          this.orders = orders || [];
-          this.batches = batches || [];
-          this.suppliers = suppliers || [];
-
-          // Debug: verificar dados carregados do Firebase
-          console.log("=== DEBUG loadData Firebase ===");
-          console.log("Pedidos carregados do Firebase:", this.orders.length);
-          console.log("Lotes carregados do Firebase:", this.batches.length);
-
-          // Verificar pedidos com batchCode
-          const ordersWithBatch = this.orders.filter(
-            (order) => order.batchCode
+          this.orders = mergeCollections(this.orders, remoteOrders || [], "id");
+          this.batches = mergeCollections(
+            this.batches,
+            remoteBatches || [],
+            "code"
           );
-          if (ordersWithBatch.length > 0) {
-            console.log(
-              "Pedidos com batchCode carregados do Firebase:",
-              ordersWithBatch.map((o) => ({ id: o.id, batchCode: o.batchCode }))
-            );
-          }
-          console.log("=== FIM DEBUG loadData Firebase ===");
+          this.suppliers = mergeCollections(
+            this.suppliers,
+            remoteSuppliers || [],
+            "id"
+          );
 
-          // Migração: se um lote não tiver name, definir name = code
-          this.batches.forEach((batch) => {
-            if (!batch.name) {
-              batch.name = batch.code;
-            }
-          });
-
-          // Calcular próximo número de lote
+          // Recalcular número de lote após merge
           this.calculateNextBatchNumber();
 
-          // Salvar no localStorage como backup
+          // Persistir merge no localStorage
           await this.saveData();
-
-          // Atualizar lotes antigos que têm rastreio mas não estão marcados como enviados
-          await this.updateOldBatchesShippingStatus();
-
-          this.isLoaded = true;
-          console.log("Dados carregados do Firebase:", {
-            orders: this.orders.length,
-            batches: this.batches.length,
-          });
-          this.hideLoading();
-          return;
-        } catch (firebaseError) {
-          console.error(
-            "Erro ao carregar do Firebase, usando localStorage:",
-            firebaseError
+        } catch (e) {
+          console.warn(
+            "Falha ao mesclar com Firebase, mantendo dados locais:",
+            e
           );
         }
-      } else {
-        console.log("Firebase não inicializado, usando localStorage");
       }
 
-      // Fallback para localStorage
-      console.log("Carregando dados do localStorage...");
-      const data = localStorage.getItem(this.storageKey);
-      if (data) {
-        const parsed = JSON.parse(data);
-        this.orders = parsed.orders || [];
-        this.batches = parsed.batches || [];
-        this.suppliers = parsed.suppliers || [];
-
-        // Migração: se um lote não tiver name, definir name = code
-        this.batches.forEach((batch) => {
-          if (!batch.name) {
-            batch.name = batch.code;
-          }
-        });
-
-        // Calcular próximo número de lote
-        this.calculateNextBatchNumber();
-
-        // Atualizar lotes antigos que têm rastreio mas não estão marcados como enviados
-        await this.updateOldBatchesShippingStatus();
-
-        this.isLoaded = true;
-        console.log("Dados carregados do localStorage:", {
-          orders: this.orders.length,
-          batches: this.batches.length,
-        });
-
-        // Tentar sincronizar com Firebase em background
-        if (this.firebase.isInitialized) {
-          this.syncToFirebaseInBackground();
-        }
-      } else {
-        this.isLoaded = true;
-        console.log("Nenhum dado encontrado, iniciando com dados vazios");
-      }
-
+      this.isLoaded = true;
+      console.log("Dados prontos:", {
+        orders: this.orders.length,
+        batches: this.batches.length,
+      });
       this.hideLoading();
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -155,16 +151,12 @@ export class Store {
         suppliers: this.suppliers || [],
       };
       localStorage.setItem(this.storageKey, JSON.stringify(data));
-
-      // Sincronizar com Firebase se disponível
-      if (this.firebase.isInitialized) {
-        await this.firebase.syncToLocalStorage();
-      }
+      // NÃO sobrescrever localStorage com dados do Firebase aqui.
+      // A sincronização com Firebase é feita em background por syncToFirebaseInBackground.
     } catch (error) {
       console.error("Erro ao salvar dados:", error);
     }
   }
-
 
   calculateNextBatchNumber() {
     if (this.batches.length === 0) {
@@ -702,7 +694,9 @@ export class Store {
 
     // Só permite alternar se já foi enviado (tem rastreio)
     if (!batch.isShipped) {
-      console.warn("Não é possível alterar status de recebimento: lote não foi enviado");
+      console.warn(
+        "Não é possível alterar status de recebimento: lote não foi enviado"
+      );
       return null;
     }
 
