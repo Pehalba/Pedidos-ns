@@ -235,28 +235,16 @@ export class Store {
       try {
         // Sincronizar pedidos
         for (const order of this.orders) {
-          try {
-            await this.firebase.updateOrder(order.id, order);
-          } catch (error) {
-            // Se falhar ao atualizar, tentar adicionar
-            if (error.code === "not-found") {
-              await this.firebase.addOrder(order);
-            } else {
-              console.error("Erro ao sincronizar pedido:", order.id, error);
-            }
+          const updated = await this.firebase.updateOrder(order.id, order);
+          if (!updated) {
+            await this.firebase.addOrder(order);
           }
         }
         // Sincronizar lotes
         for (const batch of this.batches) {
-          try {
-            await this.firebase.updateBatch(batch.code, batch);
-          } catch (error) {
-            // Se falhar ao atualizar, tentar adicionar
-            if (error.code === "not-found") {
-              await this.firebase.addBatch(batch);
-            } else {
-              console.error("Erro ao sincronizar lote:", batch.code, error);
-            }
+          const updated = await this.firebase.updateBatch(batch.code, batch);
+          if (!updated) {
+            await this.firebase.addBatch(batch);
           }
         }
         // Sincronizar fornecedores
