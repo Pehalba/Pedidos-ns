@@ -261,7 +261,8 @@ export class Store {
         // Sincronizar pedidos
         for (const order of this.orders) {
           const updated = await this.firebase.updateOrder(order.id, order);
-          if (!updated) {
+          // Só adicionar se for item novo pendente de sincronização
+          if (!updated && order.pendingSync === true) {
             await this.firebase.addOrder(order);
           }
         }
