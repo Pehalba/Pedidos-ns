@@ -104,7 +104,7 @@ export class Store {
 
           const beforeOrders = this.orders.length;
           const beforeBatches = this.batches.length;
-          
+
           this.orders = mergeCollections(this.orders, remoteOrders || [], "id");
           this.batches = mergeCollections(
             this.batches,
@@ -117,9 +117,20 @@ export class Store {
             "id"
           );
 
-          console.log(`Merge concluído: ${beforeOrders} → ${this.orders.length} pedidos, ${beforeBatches} → ${this.batches.length} lotes`);
-          console.log("Pedidos locais:", this.orders.map(o => ({ id: o.id, updatedAt: o.updatedAt })));
-          console.log("Pedidos remotos:", (remoteOrders || []).map(o => ({ id: o.id, updatedAt: o.updatedAt })));
+          console.log(
+            `Merge concluído: ${beforeOrders} → ${this.orders.length} pedidos, ${beforeBatches} → ${this.batches.length} lotes`
+          );
+          console.log(
+            "Pedidos locais:",
+            this.orders.map((o) => ({ id: o.id, updatedAt: o.updatedAt }))
+          );
+          console.log(
+            "Pedidos remotos:",
+            (remoteOrders || []).map((o) => ({
+              id: o.id,
+              updatedAt: o.updatedAt,
+            }))
+          );
 
           // Recalcular número de lote após merge
           this.calculateNextBatchNumber();
@@ -301,18 +312,29 @@ export class Store {
     // Tentar enviar imediatamente para o Firebase (sem bloquear a UI)
     if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
       try {
-        console.log(`Enviando pedido ${order.id} imediatamente para Firebase...`);
+        console.log(
+          `Enviando pedido ${order.id} imediatamente para Firebase...`
+        );
         const addedId = await this.firebase.addOrder(order);
         if (addedId) {
-          console.log(`✅ Pedido ${order.id} enviado para Firebase com sucesso`);
+          console.log(
+            `✅ Pedido ${order.id} enviado para Firebase com sucesso`
+          );
         } else {
-          console.warn(`❌ Falha ao adicionar pedido ${order.id} no Firebase agora; ficará para o background`);
+          console.warn(
+            `❌ Falha ao adicionar pedido ${order.id} no Firebase agora; ficará para o background`
+          );
         }
       } catch (err) {
-        console.warn(`❌ Erro ao adicionar pedido ${order.id} no Firebase agora; ficará para o background`, err);
+        console.warn(
+          `❌ Erro ao adicionar pedido ${order.id} no Firebase agora; ficará para o background`,
+          err
+        );
       }
     } else {
-      console.log(`⚠️ Firebase não disponível para pedido ${order.id} (inicializado: ${this.firebase.isInitialized}, cota excedida: ${this.firebase.quotaExceeded})`);
+      console.log(
+        `⚠️ Firebase não disponível para pedido ${order.id} (inicializado: ${this.firebase.isInitialized}, cota excedida: ${this.firebase.quotaExceeded})`
+      );
     }
 
     // Sincronizar tudo em background (robustez)
@@ -370,7 +392,10 @@ export class Store {
           await this.firebase.addOrder(newOrder);
         }
       } catch (err) {
-        console.warn("Falha ao atualizar/adicionar pedido no Firebase agora; ficará para o background", err);
+        console.warn(
+          "Falha ao atualizar/adicionar pedido no Firebase agora; ficará para o background",
+          err
+        );
       }
     }
 
@@ -409,10 +434,23 @@ export class Store {
     // Tentar deletar imediatamente no Firebase
     if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
       try {
-        await this.firebase.deleteOrder(id);
+        console.log(`🗑️ Deletando pedido ${id} imediatamente do Firebase...`);
+        const deleted = await this.firebase.deleteOrder(id);
+        if (deleted) {
+          console.log(`✅ Pedido ${id} deletado do Firebase com sucesso`);
+        } else {
+          console.warn(`❌ Falha ao deletar pedido ${id} do Firebase agora; ficará para o background`);
+        }
       } catch (err) {
-        console.warn("Falha ao deletar pedido no Firebase agora; ficará para o background", err);
+        console.warn(
+          `❌ Erro ao deletar pedido ${id} do Firebase agora; ficará para o background`,
+          err
+        );
       }
+    } else {
+      console.log(
+        `⚠️ Firebase não disponível para deletar pedido ${id} (inicializado: ${this.firebase.isInitialized}, cota excedida: ${this.firebase.quotaExceeded})`
+      );
     }
 
     // Sincronizar em background
@@ -644,8 +682,25 @@ export class Store {
     this.batches = this.batches.filter((batch) => batch.code !== code);
 
     // Deletar do Firebase se disponível
-    if (this.firebase.isInitialized) {
-      await this.firebase.deleteBatch(code);
+    if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
+      try {
+        console.log(`🗑️ Deletando lote ${code} imediatamente do Firebase...`);
+        const deleted = await this.firebase.deleteBatch(code);
+        if (deleted) {
+          console.log(`✅ Lote ${code} deletado do Firebase com sucesso`);
+        } else {
+          console.warn(`❌ Falha ao deletar lote ${code} do Firebase agora; ficará para o background`);
+        }
+      } catch (err) {
+        console.warn(
+          `❌ Erro ao deletar lote ${code} do Firebase agora; ficará para o background`,
+          err
+        );
+      }
+    } else {
+      console.log(
+        `⚠️ Firebase não disponível para deletar lote ${code} (inicializado: ${this.firebase.isInitialized}, cota excedida: ${this.firebase.quotaExceeded})`
+      );
     }
 
     await this.saveData();
