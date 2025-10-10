@@ -291,7 +291,19 @@ export class Store {
     await this.saveData();
     console.log("Dados salvos no localStorage");
 
-    // Tentar sincronizar com Firebase em background (opcional)
+    // Tentar enviar imediatamente para o Firebase (sem bloquear a UI)
+    if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
+      try {
+        const addedId = await this.firebase.addOrder(order);
+        if (!addedId) {
+          console.warn("Falha ao adicionar pedido no Firebase agora; ficará para o background");
+        }
+      } catch (err) {
+        console.warn("Erro ao adicionar pedido no Firebase agora; ficará para o background", err);
+      }
+    }
+
+    // Sincronizar tudo em background (robustez)
     this.syncToFirebaseInBackground();
 
     console.log("=== FIM addOrder ===");
@@ -338,7 +350,19 @@ export class Store {
     await this.saveData();
     console.log("Dados salvos no localStorage");
 
-    // Tentar sincronizar com Firebase em background (opcional)
+    // Tentar atualizar imediatamente no Firebase; se falhar, tenta adicionar; senão deixa para o background
+    if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
+      try {
+        const ok = await this.firebase.updateOrder(id, newOrder);
+        if (!ok) {
+          await this.firebase.addOrder(newOrder);
+        }
+      } catch (err) {
+        console.warn("Falha ao atualizar/adicionar pedido no Firebase agora; ficará para o background", err);
+      }
+    }
+
+    // Sincronizar em background
     this.syncToFirebaseInBackground();
 
     console.log("=== FIM updateOrder ===");
@@ -370,7 +394,16 @@ export class Store {
     await this.saveData();
     console.log("Dados salvos no localStorage");
 
-    // Tentar sincronizar com Firebase em background (opcional)
+    // Tentar deletar imediatamente no Firebase
+    if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
+      try {
+        await this.firebase.deleteOrder(id);
+      } catch (err) {
+        console.warn("Falha ao deletar pedido no Firebase agora; ficará para o background", err);
+      }
+    }
+
+    // Sincronizar em background
     this.syncToFirebaseInBackground();
     console.log("=== FIM deleteOrder ===");
     return true;
