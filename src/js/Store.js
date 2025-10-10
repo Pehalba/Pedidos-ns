@@ -598,14 +598,23 @@ export class Store {
           for (const orderId of removedOrderIds) {
             const order = this.getOrder(orderId);
             if (order) {
-              const result = await this.firebase.updateOrder(orderId, order);
-              console.log(`Pedido ${orderId} atualizado no Firebase:`, result);
-              // Verificar se a cota foi excedida durante a atualização
-              if (this.firebase.quotaExceeded) {
-                console.log(
-                  "Cota excedida detectada durante atualização, parando processo"
-                );
-                break;
+              try {
+                const result = await this.firebase.updateOrder(orderId, order);
+                console.log(`Pedido ${orderId} atualizado no Firebase:`, result);
+                // Verificar se a cota foi excedida durante a atualização
+                if (this.firebase.quotaExceeded) {
+                  console.log(
+                    "Cota excedida detectada durante atualização, parando processo"
+                  );
+                  break;
+                }
+              } catch (orderError) {
+                console.error(`Erro ao atualizar pedido ${orderId}:`, orderError);
+                if (orderError.code === "resource-exhausted") {
+                  console.warn("Cota do Firebase excedida, parando atualizações");
+                  this.firebase.quotaExceeded = true;
+                  break;
+                }
               }
             }
           }
@@ -613,16 +622,12 @@ export class Store {
             `Pedidos removidos do lote ${code} atualizados no Firebase`
           );
         } catch (error) {
+          console.error("Erro geral ao atualizar pedidos no Firebase:", error);
           if (error.code === "resource-exhausted") {
             console.warn(
               "Cota do Firebase excedida, usando apenas localStorage"
             );
             this.firebase.quotaExceeded = true;
-          } else {
-            console.error(
-              "Erro ao atualizar pedidos removidos no Firebase:",
-              error
-            );
           }
         }
       } else {
@@ -646,8 +651,8 @@ export class Store {
     this.batches[batchIndex] = newBatch;
     console.log("Lote atualizado no array local");
 
-    // Salvar no Firebase se disponível
-    if (this.firebase.isInitialized) {
+    // Salvar no Firebase se disponível e cota não excedida
+    if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
       console.log("Tentando salvar no Firebase...");
       try {
         await this.firebase.updateBatch(code, newBatch);
@@ -660,6 +665,8 @@ export class Store {
           console.error("Erro ao atualizar lote no Firebase:", error);
         }
       }
+    } else if (this.firebase.quotaExceeded) {
+      console.log("Cota do Firebase excedida, salvando apenas no localStorage");
     } else {
       console.log("Firebase não inicializado, pulando salvamento no Firebase");
     }
