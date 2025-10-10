@@ -8,6 +8,7 @@ export class Store {
     this.nextBatchNumber = 1;
     this.firebase = new FirebaseService();
     this.isLoaded = false;
+    this.integrityCheckRunning = false;
   }
 
   showLoading() {
@@ -106,7 +107,9 @@ export class Store {
           const beforeBatches = this.batches.length;
 
           // Construir merge que respeita deletados no remoto: manter locais só se pendingSync=true
-          const remoteById = new Map((remoteOrders || []).map((r) => [r.id, r]));
+          const remoteById = new Map(
+            (remoteOrders || []).map((r) => [r.id, r])
+          );
           const keptLocal = this.orders.filter(
             (l) => !remoteById.has(l.id) && l.pendingSync === true
           );
@@ -461,7 +464,9 @@ export class Store {
         if (deleted) {
           console.log(`✅ Pedido ${id} deletado do Firebase com sucesso`);
         } else {
-          console.warn(`❌ Falha ao deletar pedido ${id} do Firebase agora; ficará para o background`);
+          console.warn(
+            `❌ Falha ao deletar pedido ${id} do Firebase agora; ficará para o background`
+          );
         }
       } catch (err) {
         console.warn(
@@ -711,7 +716,9 @@ export class Store {
         if (deleted) {
           console.log(`✅ Lote ${code} deletado do Firebase com sucesso`);
         } else {
-          console.warn(`❌ Falha ao deletar lote ${code} do Firebase agora; ficará para o background`);
+          console.warn(
+            `❌ Falha ao deletar lote ${code} do Firebase agora; ficará para o background`
+          );
         }
       } catch (err) {
         console.warn(
@@ -978,6 +985,13 @@ export class Store {
 
   // Método para verificar integridade dos dados
   checkDataIntegrity() {
+    // Evitar múltiplas verificações simultâneas
+    if (this.integrityCheckRunning) {
+      console.log("Verificação de integridade já em andamento, pulando...");
+      return;
+    }
+
+    this.integrityCheckRunning = true;
     console.log("=== VERIFICAÇÃO DE INTEGRIDADE ===");
 
     let errorsFound = 0;
@@ -1084,29 +1098,42 @@ export class Store {
     if (repairsMade > 0) {
       console.log("Salvando correções...");
 
-      // Salvar no Firebase se disponível
-      if (this.firebase.isInitialized) {
+      // Salvar no localStorage primeiro (sempre funciona)
+      await this.saveData();
+      console.log("Correções salvas no localStorage!");
+
+      // Tentar salvar no Firebase se disponível e não exceder cota
+      if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
         try {
-          // Atualizar todos os pedidos no Firebase
+          // Atualizar apenas pedidos modificados no Firebase
           for (const order of this.orders) {
-            await this.firebase.updateOrder(order.id, order);
+            if (order.pendingSync) {
+              await this.firebase.updateOrder(order.id, order);
+            }
           }
 
-          // Atualizar todos os lotes no Firebase
+          // Atualizar apenas lotes modificados no Firebase
           for (const batch of this.batches) {
-            await this.firebase.updateBatch(batch.code, batch);
+            if (batch.pendingSync) {
+              await this.firebase.updateBatch(batch.code, batch);
+            }
           }
 
           console.log("Correções salvas no Firebase com sucesso!");
         } catch (error) {
           console.error("Erro ao salvar correções no Firebase:", error);
+          if (error.code === 'resource-exhausted') {
+            this.firebase.quotaExceeded = true;
+            console.log("Cota do Firebase excedida, continuando apenas com localStorage");
+          }
         }
+      } else if (this.firebase.quotaExceeded) {
+        console.log("Cota do Firebase excedida, salvando apenas no localStorage");
       }
-
-      // Salvar no localStorage
-      await this.saveData();
-      console.log("Correções salvas no localStorage!");
     }
+
+    // Resetar flag
+    this.integrityCheckRunning = false;
   }
 
   getOrdersInBatch(batchCode) {

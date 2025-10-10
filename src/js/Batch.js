@@ -192,9 +192,7 @@ export class Batch {
   }
 
   loadAvailableOrders() {
-    // Verificar integridade dos dados antes de carregar pedidos disponíveis
-    this.store.checkDataIntegrity();
-
+    // Carregar pedidos disponíveis sem verificação de integridade para evitar travamentos
     const allOrders = this.store.getOrders();
     console.log("Total de pedidos:", allOrders.length);
 
