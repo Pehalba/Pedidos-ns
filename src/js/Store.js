@@ -105,7 +105,14 @@ export class Store {
           const beforeOrders = this.orders.length;
           const beforeBatches = this.batches.length;
 
-          this.orders = mergeCollections(this.orders, remoteOrders || [], "id");
+          // Construir merge que respeita deletados no remoto: manter locais só se pendingSync=true
+          const remoteById = new Map((remoteOrders || []).map((r) => [r.id, r]));
+          const keptLocal = this.orders.filter(
+            (l) => !remoteById.has(l.id) && l.pendingSync === true
+          );
+          const mergedOrders = [...(remoteOrders || []), ...keptLocal];
+
+          this.orders = mergeCollections(mergedOrders, [], "id");
           this.batches = mergeCollections(
             this.batches,
             remoteBatches || [],
@@ -298,6 +305,7 @@ export class Store {
       notes: orderData.notes || "",
       createdAt: now,
       updatedAt: now,
+      pendingSync: true,
     };
 
     console.log("Pedido criado:", order);
@@ -320,6 +328,12 @@ export class Store {
           console.log(
             `✅ Pedido ${order.id} enviado para Firebase com sucesso`
           );
+          // limpar pendingSync e salvar
+          const idx = this.orders.findIndex((o) => o.id === order.id);
+          if (idx !== -1) {
+            this.orders[idx].pendingSync = false;
+            await this.saveData();
+          }
         } else {
           console.warn(
             `❌ Falha ao adicionar pedido ${order.id} no Firebase agora; ficará para o background`
@@ -365,6 +379,7 @@ export class Store {
       ...orderData,
       id: oldOrder.id, // Não permitir mudança de ID
       updatedAt: new Date().toISOString(),
+      pendingSync: true,
     };
     console.log("Novo pedido:", newOrder);
 
@@ -390,6 +405,12 @@ export class Store {
         const ok = await this.firebase.updateOrder(id, newOrder);
         if (!ok) {
           await this.firebase.addOrder(newOrder);
+        }
+        // limpar pendingSync e salvar
+        const idx = this.orders.findIndex((o) => o.id === id);
+        if (idx !== -1) {
+          this.orders[idx].pendingSync = false;
+          await this.saveData();
         }
       } catch (err) {
         console.warn(
