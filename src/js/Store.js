@@ -102,6 +102,9 @@ export class Store {
             return Array.from(finalMap.values());
           };
 
+          const beforeOrders = this.orders.length;
+          const beforeBatches = this.batches.length;
+          
           this.orders = mergeCollections(this.orders, remoteOrders || [], "id");
           this.batches = mergeCollections(
             this.batches,
@@ -113,6 +116,10 @@ export class Store {
             remoteSuppliers || [],
             "id"
           );
+
+          console.log(`Merge concluído: ${beforeOrders} → ${this.orders.length} pedidos, ${beforeBatches} → ${this.batches.length} lotes`);
+          console.log("Pedidos locais:", this.orders.map(o => ({ id: o.id, updatedAt: o.updatedAt })));
+          console.log("Pedidos remotos:", (remoteOrders || []).map(o => ({ id: o.id, updatedAt: o.updatedAt })));
 
           // Recalcular número de lote após merge
           this.calculateNextBatchNumber();
@@ -294,13 +301,18 @@ export class Store {
     // Tentar enviar imediatamente para o Firebase (sem bloquear a UI)
     if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
       try {
+        console.log(`Enviando pedido ${order.id} imediatamente para Firebase...`);
         const addedId = await this.firebase.addOrder(order);
-        if (!addedId) {
-          console.warn("Falha ao adicionar pedido no Firebase agora; ficará para o background");
+        if (addedId) {
+          console.log(`✅ Pedido ${order.id} enviado para Firebase com sucesso`);
+        } else {
+          console.warn(`❌ Falha ao adicionar pedido ${order.id} no Firebase agora; ficará para o background`);
         }
       } catch (err) {
-        console.warn("Erro ao adicionar pedido no Firebase agora; ficará para o background", err);
+        console.warn(`❌ Erro ao adicionar pedido ${order.id} no Firebase agora; ficará para o background`, err);
       }
+    } else {
+      console.log(`⚠️ Firebase não disponível para pedido ${order.id} (inicializado: ${this.firebase.isInitialized}, cota excedida: ${this.firebase.quotaExceeded})`);
     }
 
     // Sincronizar tudo em background (robustez)
