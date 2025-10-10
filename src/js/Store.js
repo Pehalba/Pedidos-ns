@@ -59,12 +59,44 @@ export class Store {
       if (this.firebase.isInitialized) {
         try {
           console.log("Buscando dados do Firebase para merge...");
-          const [remoteOrders, remoteBatches, remoteSuppliers] =
-            await Promise.all([
-              this.firebase.getOrders(),
-              this.firebase.getBatches(),
-              this.firebase.getSuppliers(),
-            ]);
+          
+          // Buscar dados do Firebase individualmente para tratar erros de cota
+          let remoteOrders = [];
+          let remoteBatches = [];
+          let remoteSuppliers = [];
+          
+          try {
+            remoteOrders = await this.firebase.getOrders();
+          } catch (error) {
+            if (error.code === "resource-exhausted") {
+              console.warn("Cota excedida ao buscar pedidos do Firebase");
+              this.firebase.quotaExceeded = true;
+            } else {
+              console.error("Erro ao buscar pedidos do Firebase:", error);
+            }
+          }
+          
+          try {
+            remoteBatches = await this.firebase.getBatches();
+          } catch (error) {
+            if (error.code === "resource-exhausted") {
+              console.warn("Cota excedida ao buscar lotes do Firebase");
+              this.firebase.quotaExceeded = true;
+            } else {
+              console.error("Erro ao buscar lotes do Firebase:", error);
+            }
+          }
+          
+          try {
+            remoteSuppliers = await this.firebase.getSuppliers();
+          } catch (error) {
+            if (error.code === "resource-exhausted") {
+              console.warn("Cota excedida ao buscar fornecedores do Firebase");
+              this.firebase.quotaExceeded = true;
+            } else {
+              console.error("Erro ao buscar fornecedores do Firebase:", error);
+            }
+          }
 
           const mergeCollections = (localArr, remoteArr, key) => {
             const map = new Map();
@@ -163,6 +195,10 @@ export class Store {
       this.hideLoading();
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
+      if (error.code === "resource-exhausted") {
+        console.warn("Cota do Firebase excedida durante carregamento");
+        this.firebase.quotaExceeded = true;
+      }
       this.orders = [];
       this.batches = [];
       this.isLoaded = true;
