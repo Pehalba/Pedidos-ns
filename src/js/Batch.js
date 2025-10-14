@@ -196,12 +196,22 @@ export class Batch {
     const allOrders = this.store.getOrders();
     console.log("Total de pedidos:", allOrders.length);
 
-    const availableOrders = allOrders.filter(
-      (order) =>
+    const availableOrders = allOrders.filter((order) => {
+      const isEligible =
         order.shippingType === "PADRAO" &&
         order.paymentStatus === "PAGO" &&
-        !order.batchCode
-    );
+        (!order.batchCode || order.batchCode === "");
+
+      // Se estamos editando um lote, excluir pedidos que já estão neste lote
+      if (this.currentBatchCode && order.batchCode === this.currentBatchCode) {
+        console.log(
+          `Excluindo pedido ${order.id} que já está no lote ${this.currentBatchCode}`
+        );
+        return false;
+      }
+
+      return isEligible;
+    });
 
     console.log("Pedidos disponíveis para lote:", availableOrders.length);
     console.log("Pedidos disponíveis:", availableOrders);
@@ -212,7 +222,7 @@ export class Batch {
   renderAvailableOrders(orders) {
     const container = document.getElementById("available-orders");
     console.log("Container available-orders:", container);
-    
+
     if (!container) {
       console.error("Container available-orders não encontrado!");
       return;
@@ -385,8 +395,15 @@ export class Batch {
       if (this.currentBatchCode) {
         // Editar lote existente
         console.log("Editando lote existente");
-        console.log("Chamando store.updateBatch com:", this.currentBatchCode, batchData);
-        const result = await this.store.updateBatch(this.currentBatchCode, batchData);
+        console.log(
+          "Chamando store.updateBatch com:",
+          this.currentBatchCode,
+          batchData
+        );
+        const result = await this.store.updateBatch(
+          this.currentBatchCode,
+          batchData
+        );
         console.log("Resultado do updateBatch:", result);
         this.showToast("Lote atualizado com sucesso", "success");
       } else {
@@ -485,8 +502,15 @@ export class Batch {
         return;
       }
 
-      // Alternar entre 'pedro' e 'edu'
-      const newDestination = batch.destination === "edu" ? "pedro" : "edu";
+      // Alternar entre 'pedro', 'edu' e 'rodrigo'
+      let newDestination;
+      if (batch.destination === "pedro") {
+        newDestination = "edu";
+      } else if (batch.destination === "edu") {
+        newDestination = "rodrigo";
+      } else {
+        newDestination = "pedro";
+      }
 
       // Atualizar o lote com o novo destino
       await this.store.updateBatch(batchCode, {
@@ -495,7 +519,12 @@ export class Batch {
         updatedAt: new Date().toISOString(),
       });
 
-      const destinationName = newDestination === "edu" ? "Edu" : "Pedro";
+      const destinationName =
+        newDestination === "edu"
+          ? "Edu"
+          : newDestination === "rodrigo"
+          ? "Rodrigo"
+          : "Pedro";
       this.showToast(`Destino alterado para ${destinationName}`, "success");
 
       // Recarregar o dashboard para mostrar a mudança
@@ -530,11 +559,11 @@ export class Batch {
 
       // Atualizar UI
       window.app.renderDashboard();
-      
+
       let newStatus = "Enviado";
       if (batch.isReceived) newStatus = "Recebido";
       else if (batch.isAbnormal) newStatus = "Status Anormal";
-      
+
       this.showToast(`Status alterado para ${newStatus}`, "success");
     } catch (error) {
       console.error("Erro ao alterar status de envio:", error);

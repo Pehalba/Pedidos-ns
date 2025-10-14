@@ -143,18 +143,36 @@ export class UI {
                     onclick="window.app.batch.toggleDestination('${
                       batch.code
                     }')">
-              📦 ${batch.destination === "edu" ? "Edu" : "Pedro"}
+              📦 ${
+                batch.destination === "edu"
+                  ? "Edu"
+                  : batch.destination === "rodrigo"
+                  ? "Rodrigo"
+                  : "Pedro"
+              }
             </button>
             <button class="shipping-toggle ${
-              !batch.isShipped ? "shipping-toggle--not-shipped" : 
-              (batch.isAbnormal ? "shipping-toggle--abnormal" :
-              (batch.isReceived ? "shipping-toggle--received" : "shipping-toggle--shipped"))
+              !batch.isShipped
+                ? "shipping-toggle--not-shipped"
+                : batch.isAbnormal
+                ? "shipping-toggle--abnormal"
+                : batch.isReceived
+                ? "shipping-toggle--received"
+                : "shipping-toggle--shipped"
             }" 
-                    onclick="window.app.batch.toggleShippingStatus('${batch.code}')"
+                    onclick="window.app.batch.toggleShippingStatus('${
+                      batch.code
+                    }')"
                     ${!batch.isShipped ? "disabled" : ""}>
-              ${!batch.isShipped ? "⏳ Não Enviado" : 
-                (batch.isAbnormal ? "⚠️ Status Anormal" :
-                (batch.isReceived ? "✅ Recebido" : "📦 Enviado"))}
+              ${
+                !batch.isShipped
+                  ? "⏳ Não Enviado"
+                  : batch.isAbnormal
+                  ? "⚠️ Status Anormal"
+                  : batch.isReceived
+                  ? "✅ Recebido"
+                  : "📦 Enviado"
+              }
             </button>
             ${
               batch.supplierId

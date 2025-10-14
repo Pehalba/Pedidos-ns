@@ -79,7 +79,8 @@ export class FirebaseService {
   }
 
   async updateOrder(orderId, orderData) {
-    if (!this.isInitialized) return false;
+    if (!this.isInitialized)
+      return { success: false, error: "Firebase não inicializado" };
     try {
       await this.db
         .collection("orders")
@@ -88,15 +89,16 @@ export class FirebaseService {
           ...orderData,
           updatedAt: orderData.updatedAt || new Date().toISOString(),
         });
-      return true;
+      return { success: true };
     } catch (error) {
       if (error.code === "resource-exhausted") {
         console.warn("Cota do Firebase excedida ao atualizar pedido");
         this.quotaExceeded = true;
+        return { success: false, error: "quota-exceeded" };
       } else {
         console.error("Erro ao atualizar pedido:", error);
+        return { success: false, error: error.message };
       }
-      return false;
     }
   }
 
@@ -134,7 +136,8 @@ export class FirebaseService {
   }
 
   async addBatch(batchData) {
-    if (!this.isInitialized) return null;
+    if (!this.isInitialized)
+      return { success: false, error: "Firebase não inicializado" };
 
     try {
       // Usar o código do lote como ID do documento
@@ -146,10 +149,16 @@ export class FirebaseService {
           createdAt: batchData.createdAt || new Date().toISOString(),
           updatedAt: batchData.updatedAt || new Date().toISOString(),
         });
-      return batchData.code;
+      return { success: true, id: batchData.code };
     } catch (error) {
-      console.error("Erro ao adicionar lote:", error);
-      return null;
+      if (error.code === "resource-exhausted") {
+        console.warn("Cota do Firebase excedida ao adicionar lote");
+        this.quotaExceeded = true;
+        return { success: false, error: "quota-exceeded" };
+      } else {
+        console.error("Erro ao adicionar lote:", error);
+        return { success: false, error: error.message };
+      }
     }
   }
 

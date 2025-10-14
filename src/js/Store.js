@@ -9,6 +9,88 @@ export class Store {
     this.firebase = new FirebaseService();
     this.isLoaded = false;
     this.integrityCheckRunning = false;
+
+    // Listener global para detectar erros de cota do Firebase
+    this.setupFirebaseErrorListener();
+  }
+
+  setupFirebaseErrorListener() {
+    // Interceptar erros do console para detectar quota exceeded
+    const originalError = console.error;
+    console.error = (...args) => {
+      const message = args.join(" ");
+      if (
+        message.includes("resource-exhausted") ||
+        message.includes("Quota exceeded")
+      ) {
+        console.warn(
+          "🔥 Erro de cota detectado globalmente, desabilitando Firebase"
+        );
+        this.firebase.quotaExceeded = true;
+        this.showQuotaExceededNotification();
+      }
+      originalError.apply(console, args);
+    };
+  }
+
+  showQuotaExceededNotification() {
+    // Mostrar notificação para o usuário
+    if (window.app && window.app.ui) {
+      window.app.ui.showToast(
+        "⚠️ Cota do Firebase excedida. Trabalhando offline - dados serão sincronizados quando a cota renovar.",
+        "warning"
+      );
+    }
+  }
+
+  async checkQuotaRenewal() {
+    // Se a cota estava excedida, tentar uma operação simples para ver se renovou
+    if (this.firebase.quotaExceeded) {
+      console.log("🔄 Verificando se a cota do Firebase renovou...");
+      try {
+        // Tentar uma operação simples para testar a cota (usar getSuppliers que é menor)
+        await this.firebase.getSuppliers();
+        console.log("✅ Cota do Firebase renovada! Reabilitando Firebase");
+        this.firebase.quotaExceeded = false;
+
+        // Sincronizar dados pendentes
+        await this.syncPendingData();
+      } catch (error) {
+        console.log("❌ Cota ainda excedida, mantendo Firebase desabilitado");
+      }
+    }
+  }
+
+  async syncPendingData() {
+    console.log("🔄 Sincronizando dados pendentes...");
+
+    // Sincronizar lotes pendentes
+    const pendingBatches = this.batches.filter((batch) => batch.pendingSync);
+    for (const batch of pendingBatches) {
+      try {
+        await this.firebase.updateBatch(batch.code, batch);
+        batch.pendingSync = false;
+        console.log(`✅ Lote ${batch.code} sincronizado`);
+      } catch (error) {
+        console.error(`❌ Erro ao sincronizar lote ${batch.code}:`, error);
+      }
+    }
+
+    // Sincronizar pedidos pendentes
+    const pendingOrders = this.orders.filter((order) => order.pendingSync);
+    for (const order of pendingOrders) {
+      try {
+        await this.firebase.updateOrder(order.id, order);
+        order.pendingSync = false;
+        console.log(`✅ Pedido ${order.id} sincronizado`);
+      } catch (error) {
+        console.error(`❌ Erro ao sincronizar pedido ${order.id}:`, error);
+      }
+    }
+
+    // Salvar alterações
+    await this.saveData();
+    console.log("✅ Sincronização de dados pendentes concluída");
   }
 
   showLoading() {
@@ -28,6 +110,9 @@ export class Store {
   async loadData() {
     try {
       this.showLoading();
+
+      // Verificar se a cota renovou
+      await this.checkQuotaRenewal();
 
       // 1) Carregar do localStorage primeiro (fonte da verdade imediata)
       console.log("Carregando dados do localStorage...");
@@ -59,12 +144,12 @@ export class Store {
       if (this.firebase.isInitialized) {
         try {
           console.log("Buscando dados do Firebase para merge...");
-          
+
           // Buscar dados do Firebase individualmente para tratar erros de cota
           let remoteOrders = [];
           let remoteBatches = [];
           let remoteSuppliers = [];
-          
+
           try {
             remoteOrders = await this.firebase.getOrders();
           } catch (error) {
@@ -75,7 +160,7 @@ export class Store {
               console.error("Erro ao buscar pedidos do Firebase:", error);
             }
           }
-          
+
           try {
             remoteBatches = await this.firebase.getBatches();
           } catch (error) {
@@ -86,7 +171,7 @@ export class Store {
               console.error("Erro ao buscar lotes do Firebase:", error);
             }
           }
-          
+
           try {
             remoteSuppliers = await this.firebase.getSuppliers();
           } catch (error) {
@@ -272,59 +357,13 @@ export class Store {
     return this.firebase.isInitialized && !this.firebase.quotaExceeded;
   }
 
-  // Sincronizar com Firebase em background (não bloqueia operações)
+  // Sincronizar com Firebase em background (DESABILITADO para economizar leituras)
   async syncToFirebaseInBackground() {
-    if (!this.firebase.isInitialized) {
-      console.log("Firebase não inicializado, pulando sincronização");
-      return;
-    }
-
-    // Se cota excedida, tentar verificar se foi renovada
-    if (this.firebase.quotaExceeded) {
-      console.log("Verificando se cota do Firebase foi renovada...");
-      try {
-        // Tentar uma operação simples para testar
-        await this.firebase.getOrders();
-        console.log("✅ Cota do Firebase renovada! Reabilitando Firebase");
-        this.firebase.quotaExceeded = false;
-      } catch (error) {
-        console.log("Cota ainda excedida, mantendo Firebase desabilitado");
-        return;
-      }
-    }
-
-    // Se Firebase está funcionando, sincronizar dados
-    if (this.shouldUseFirebase()) {
-      console.log("🔄 Sincronizando dados com Firebase em background...");
-      try {
-        // Sincronizar pedidos
-        for (const order of this.orders) {
-          const updated = await this.firebase.updateOrder(order.id, order);
-          // Só adicionar se for item novo pendente de sincronização
-          if (!updated && order.pendingSync === true) {
-            await this.firebase.addOrder(order);
-          }
-        }
-        // Sincronizar lotes
-        for (const batch of this.batches) {
-          const updated = await this.firebase.updateBatch(batch.code, batch);
-          if (!updated) {
-            await this.firebase.addBatch(batch);
-          }
-        }
-        // Sincronizar fornecedores
-        for (const supplier of this.suppliers) {
-          await this.firebase.addSupplier(supplier);
-        }
-        console.log("✅ Sincronização com Firebase concluída!");
-      } catch (error) {
-        console.log("❌ Erro na sincronização:", error);
-        if (error.code === "resource-exhausted") {
-          this.firebase.quotaExceeded = true;
-          console.log("Cota excedida novamente, desabilitando Firebase");
-        }
-      }
-    }
+    console.log(
+      "🔄 Sincronização em background desabilitada para economizar leituras do Firebase"
+    );
+    console.log("💡 Use a sincronização manual quando necessário");
+    return;
   }
 
   async addOrder(orderData) {
@@ -392,7 +431,7 @@ export class Store {
     }
 
     // Sincronizar tudo em background (robustez)
-    this.syncToFirebaseInBackground();
+    // Sincronização em background desabilitada para economizar leituras
 
     console.log("=== FIM addOrder ===");
     return order;
@@ -461,7 +500,7 @@ export class Store {
     }
 
     // Sincronizar em background
-    this.syncToFirebaseInBackground();
+    // Sincronização em background desabilitada para economizar leituras
 
     console.log("=== FIM updateOrder ===");
     return newOrder;
@@ -517,7 +556,7 @@ export class Store {
     }
 
     // Sincronizar em background
-    this.syncToFirebaseInBackground();
+    // Sincronização em background desabilitada para economizar leituras
     console.log("=== FIM deleteOrder ===");
     return true;
   }
@@ -551,9 +590,28 @@ export class Store {
     this.batches.push(batch);
     this.nextBatchNumber++;
 
-    // Salvar no Firebase se disponível
-    if (this.firebase.isInitialized) {
-      await this.firebase.addBatch(batch);
+    // Marcar como pendente de sincronização se cota excedida
+    if (this.firebase.quotaExceeded) {
+      batch.pendingSync = true;
+      console.log("📝 Novo lote marcado como pendente de sincronização");
+    }
+
+    // Salvar no Firebase se disponível e cota não excedida
+    if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
+      const result = await this.firebase.addBatch(batch);
+      if (result.success) {
+        console.log("✅ Lote criado no Firebase");
+      } else {
+        if (result.error === "quota-exceeded") {
+          console.warn("Cota do Firebase excedida, marcando como pendente");
+          batch.pendingSync = true;
+          this.firebase.quotaExceeded = true;
+        } else {
+          console.error("Erro ao criar lote no Firebase:", result.error);
+        }
+      }
+    } else if (this.firebase.quotaExceeded) {
+      console.log("Cota excedida, salvando apenas no localStorage");
     }
 
     await this.saveData();
@@ -624,33 +682,60 @@ export class Store {
       console.log("- Pedidos removidos:", removedOrderIds.length);
       console.log("- Cota excedida:", this.firebase.quotaExceeded);
 
-      // Pular atualização no Firebase se cota excedida
+      // Pular atualização no Firebase se cota excedida ou se já houve erro de cota
       if (this.firebase.quotaExceeded) {
-        console.log("Cota do Firebase excedida, pulando atualização de pedidos removidos");
-      } else if (
-        this.firebase.isInitialized &&
-        removedOrderIds.length > 0
-      ) {
+        console.log(
+          "Cota do Firebase excedida, pulando atualização de pedidos removidos"
+        );
+      } else if (this.firebase.isInitialized && removedOrderIds.length > 0) {
         console.log("Atualizando pedidos removidos no Firebase...");
         for (const orderId of removedOrderIds) {
           // Verificar cota antes de cada operação
+          console.log(
+            `Verificando cota antes de atualizar pedido ${orderId}:`,
+            this.firebase.quotaExceeded
+          );
           if (this.firebase.quotaExceeded) {
             console.log("Cota excedida, parando atualizações de pedidos");
             break;
           }
-          
+
+          // Verificação adicional: se já houve erro de cota, parar imediatamente
+          if (this.firebase.quotaExceeded) {
+            console.log(
+              "🔥 Cota detectada durante verificação, parando imediatamente"
+            );
+            break;
+          }
+
           const order = this.getOrder(orderId);
           if (order) {
-            try {
-              const result = await this.firebase.updateOrder(orderId, order);
-              console.log(`Pedido ${orderId} atualizado no Firebase:`, result);
-            } catch (orderError) {
-              console.error(`Erro ao atualizar pedido ${orderId}:`, orderError);
-              if (orderError.code === "resource-exhausted") {
+            const result = await this.firebase.updateOrder(orderId, order);
+            console.log(
+              `Resultado da atualização do pedido ${orderId}:`,
+              result
+            );
+
+            if (!result.success) {
+              if (result.error === "quota-exceeded") {
                 console.warn("Cota do Firebase excedida, parando atualizações");
                 this.firebase.quotaExceeded = true;
+                console.log("Flag quotaExceeded definida como true");
                 break;
+              } else {
+                console.error(
+                  `Erro ao atualizar pedido ${orderId}:`,
+                  result.error
+                );
               }
+            }
+
+            // Verificar se a flag foi definida pelo FirebaseService
+            if (this.firebase.quotaExceeded) {
+              console.log(
+                "Flag quotaExceeded detectada após updateOrder, parando"
+              );
+              break;
             }
           }
         }
@@ -677,6 +762,12 @@ export class Store {
 
     this.batches[batchIndex] = newBatch;
     console.log("Lote atualizado no array local");
+
+    // Marcar como pendente de sincronização se cota excedida
+    if (this.firebase.quotaExceeded) {
+      newBatch.pendingSync = true;
+      console.log("📝 Lote marcado como pendente de sincronização");
+    }
 
     // Salvar no Firebase se disponível e cota não excedida
     if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
@@ -893,6 +984,19 @@ export class Store {
     orderIds.forEach((orderId) => {
       const order = this.getOrder(orderId);
       if (order && order.shippingType === "PADRAO") {
+        // Remover pedido de lote anterior se existir
+        if (order.batchCode && order.batchCode !== batchCode) {
+          const previousBatch = this.getBatch(order.batchCode);
+          if (previousBatch) {
+            previousBatch.orderIds = previousBatch.orderIds.filter(
+              (id) => id !== orderId
+            );
+            console.log(
+              `Pedido ${orderId} removido do lote anterior ${order.batchCode}`
+            );
+          }
+        }
+
         order.batchCode = batchCode;
         order.internalTag = this.generateInternalTag(
           order.productName,
@@ -916,18 +1020,22 @@ export class Store {
           console.log("Cota excedida, parando atualizações de pedidos");
           break;
         }
-        
+
         const order = this.getOrder(orderId);
         if (order) {
-          try {
-            await this.firebase.updateOrder(orderId, order);
-            console.log(`Pedido ${orderId} salvo no Firebase`);
-          } catch (error) {
-            console.error(`Erro ao atualizar pedido ${orderId}:`, error);
-            if (error.code === "resource-exhausted") {
+          const result = await this.firebase.updateOrder(orderId, order);
+          console.log(`Resultado da atualização do pedido ${orderId}:`, result);
+
+          if (!result.success) {
+            if (result.error === "quota-exceeded") {
               console.warn("Cota do Firebase excedida, parando atualizações");
               this.firebase.quotaExceeded = true;
               break;
+            } else {
+              console.error(
+                `Erro ao atualizar pedido ${orderId}:`,
+                result.error
+              );
             }
           }
         }
@@ -1075,12 +1183,14 @@ export class Store {
       `=== FIM VERIFICAÇÃO DE INTEGRIDADE - ${errorsFound} erros encontrados ===`
     );
 
-    // Se há erros, oferecer reparo automático
+    // Se há erros, apenas logar (não executar reparo automático para economizar leituras)
     if (errorsFound > 0) {
       console.log(
-        "⚠️ Inconsistências detectadas! Executando reparo automático..."
+        "⚠️ Inconsistências detectadas! Reparo automático desabilitado para economizar leituras do Firebase."
       );
-      this.repairDataIntegrity();
+      console.log(
+        "💡 Para reparar, use a opção manual no menu de administração."
+      );
     }
   }
 
@@ -1162,13 +1272,17 @@ export class Store {
           console.log("Correções salvas no Firebase com sucesso!");
         } catch (error) {
           console.error("Erro ao salvar correções no Firebase:", error);
-          if (error.code === 'resource-exhausted') {
+          if (error.code === "resource-exhausted") {
             this.firebase.quotaExceeded = true;
-            console.log("Cota do Firebase excedida, continuando apenas com localStorage");
+            console.log(
+              "Cota do Firebase excedida, continuando apenas com localStorage"
+            );
           }
         }
       } else if (this.firebase.quotaExceeded) {
-        console.log("Cota do Firebase excedida, salvando apenas no localStorage");
+        console.log(
+          "Cota do Firebase excedida, salvando apenas no localStorage"
+        );
       }
     }
 
