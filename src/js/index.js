@@ -574,7 +574,10 @@ class App {
     const copyBtn = document.getElementById("copy-message-btn");
 
     if (messageText && copyBtn) {
-      const textToCopy = messageText.textContent.trim();
+      // Normalizar quebras e múltiplos espaços para uma única linha
+      const textToCopy = messageText.textContent
+        .replace(/\s+/g, " ")
+        .trim();
 
       // Usar a API moderna de clipboard
       if (navigator.clipboard && window.isSecureContext) {
