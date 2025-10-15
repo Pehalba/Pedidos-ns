@@ -167,6 +167,22 @@ class App {
       });
     }
 
+    // Filtros do dashboard
+    const shippingSelect = document.getElementById("filter-shipping-status");
+    const supplierSelect = document.getElementById("filter-supplier");
+    const destinationSelect = document.getElementById("filter-destination");
+
+    if (shippingSelect) {
+      shippingSelect.addEventListener("change", () => this.filterDashboard());
+    }
+    if (destinationSelect) {
+      destinationSelect.addEventListener("change", () => this.filterDashboard());
+    }
+    if (supplierSelect) {
+      this.populateSuppliersFilter();
+      supplierSelect.addEventListener("change", () => this.filterDashboard());
+    }
+
     // Botão de copiar mensagem do cliente
     const copyMessageBtn = document.getElementById("copy-message-btn");
     if (copyMessageBtn) {
@@ -304,12 +320,80 @@ class App {
         .map((orderId) => this.store.getOrder(orderId))
         .filter(Boolean);
 
-      return batchOrders.some((order) =>
-        order.productName.toLowerCase().includes(searchTerm)
-      );
+      if (batchOrders.some((order) =>
+        (order.productName || "").toLowerCase().includes(searchTerm)
+      )) return true;
+
+      // Novo: Buscar por número do pedido que retorna o lote
+      if (batchOrders.some((order) => ("" + order.id).includes(searchTerm))) return true;
+
+      return false;
     });
 
     this.ui.renderBatchesList(filteredBatches, this.store);
+  }
+
+  populateSuppliersFilter() {
+    const supplierSelect = document.getElementById("filter-supplier");
+    if (!supplierSelect) return;
+    const suppliers = this.store.getSuppliers
+      ? this.store.getSuppliers()
+      : this.store.suppliers || [];
+    const current = supplierSelect.value;
+    supplierSelect.innerHTML =
+      '<option value="">Fornecedor (Todos)</option>' +
+      suppliers.map((s) => `<option value="${s.id}">${s.name}</option>`).join("");
+    if ([...supplierSelect.options].some((o) => o.value === current)) {
+      supplierSelect.value = current;
+    }
+  }
+
+  filterDashboard() {
+    const statusSel = document.getElementById("filter-shipping-status");
+    const supplierSel = document.getElementById("filter-supplier");
+    const destinationSel = document.getElementById("filter-destination");
+    const searchInput = document.getElementById("dashboard-search");
+
+    const statusVal = statusSel ? statusSel.value : "";
+    const supplierVal = supplierSel ? supplierSel.value : "";
+    const destinationVal = destinationSel ? destinationSel.value : "";
+    const query = (searchInput ? searchInput.value : "").toLowerCase().trim();
+
+    let batches = this.store.getBatches();
+
+    if (statusVal) {
+      if (statusVal === "NOT_SHIPPED") {
+        batches = batches.filter((b) => !b.isShipped);
+      } else if (statusVal === "SHIPPED") {
+        batches = batches.filter((b) => b.isShipped && !b.isReceived && !b.isAbnormal);
+      } else if (statusVal === "RECEIVED") {
+        batches = batches.filter((b) => b.isReceived);
+      } else if (statusVal === "ABNORMAL") {
+        batches = batches.filter((b) => b.isAbnormal);
+      }
+    }
+
+    if (destinationVal) {
+      batches = batches.filter((b) => (b.destination || "pedro") === destinationVal);
+    }
+
+    if (supplierVal) {
+      batches = batches.filter((b) => (b.supplierId || "") === supplierVal);
+    }
+
+    if (query) {
+      batches = batches.filter((batch) => {
+        if (batch.name && batch.name.toLowerCase().includes(query)) return true;
+        const batchOrders = (batch.orderIds || [])
+          .map((orderId) => this.store.getOrder(orderId))
+          .filter(Boolean);
+        if (batchOrders.some((o) => (o.productName || "").toLowerCase().includes(query))) return true;
+        if (batchOrders.some((o) => ("" + o.id).includes(query))) return true;
+        return false;
+      });
+    }
+
+    this.ui.renderBatchesList(batches, this.store);
   }
 
   createDemoData() {
