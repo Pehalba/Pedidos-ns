@@ -235,6 +235,36 @@ body {
   align-items: center;
 }
 
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .dashboard-filters-row {
+    grid-template-columns: 1fr; /* stack inputs */
+    gap: 12px;
+  }
+  .dashboard-filters-row .input,
+  #dashboard-search {
+    width: 100%;
+  }
+
+  .customer-message-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .customer-message-text {
+    font-size: 0.95rem;
+    white-space: normal; /* permitir quebra no mobile */
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .copy-btn {
+    align-self: stretch;
+    width: 100%;
+  }
+}
+
 @keyframes pulse-success {
   0%,
   100% {
