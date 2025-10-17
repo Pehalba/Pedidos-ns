@@ -53,6 +53,7 @@
               Dashboard
             </button>
             <button class="header__nav-btn" data-view="orders">Pedidos</button>
+            <button class="header__nav-btn" data-view="sheet">Planilha de Pedidos</button>
             <button class="header__nav-btn" data-view="import">
               Importar CSV
             </button>
@@ -181,8 +182,44 @@
               <!-- Batches List -->
               <div id="batches-list" class="batches-list"></div>
             </div>
+          </div>
+        </div>
 
-            
+        <!-- Orders Sheet View -->
+        <div id="sheet-view" class="view">
+          <div class="content">
+            <div class="content__header">
+              <h2 class="content__title">Planilha de Pedidos</h2>
+              <div class="sheet-controls">
+                <input id="sheet-search" class="input" placeholder="Buscar por cliente ou nº do pedido" />
+                <select id="sheet-freight-filter" class="input">
+                  <option value="">Frete (Todos)</option>
+                  <option value="PADRAO">Padrão</option>
+                  <option value="EXPRESSO">Expresso</option>
+                </select>
+                <button id="sheet-export" class="btn btn--secondary">Exportar CSV</button>
+              </div>
+            </div>
+
+            <div class="sheet-summary">Total de pedidos: <span id="sheet-total">0</span></div>
+
+            <div class="orders-sheet-wrapper">
+              <table class="orders-sheet" id="orders-sheet">
+                <thead>
+                  <tr>
+                    <th>Pedido</th>
+                    <th>Produto</th>
+                    <th>Status no fornecedor</th>
+                    <th>Status de envio</th>
+                    <th>Frete</th>
+                    <th>Nome do cliente</th>
+                    <th>WhatsApp</th>
+                    <th>Data do pedido</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-sheet-body"></tbody>
+              </table>
+            </div>
           </div>
         </div>
 

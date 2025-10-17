@@ -9,9 +9,46 @@ export class Store {
     this.firebase = new FirebaseService();
     this.isLoaded = false;
     this.integrityCheckRunning = false;
+    this.ordersUnsubscribe = null;
 
     // Listener global para detectar erros de cota do Firebase
     this.setupFirebaseErrorListener();
+  }
+
+  startOrdersRealtime() {
+    if (this.ordersUnsubscribe) {
+      try { this.ordersUnsubscribe(); } catch (e) {}
+      this.ordersUnsubscribe = null;
+    }
+    if (!this.firebase || !this.firebase.isInitialized || this.firebase.quotaExceeded) {
+      return;
+    }
+    this.ordersUnsubscribe = this.firebase.onOrdersSnapshot((orders) => {
+      // Merge não destrutivo com localStorage, mantendo updatedAt mais recente
+      const localOrders = this.orders || [];
+      const localById = new Map(localOrders.map((o) => [String(o.id), o]));
+      const merged = orders.map((remote) => {
+        const id = String(remote.id || remote.docId || "");
+        const local = localById.get(id);
+        if (!local) return remote;
+        const ru = new Date(remote.updatedAt || 0).getTime();
+        const lu = new Date(local.updatedAt || 0).getTime();
+        return ru >= lu ? remote : local;
+      });
+      // incluir locais que não existem no remoto
+      localOrders.forEach((o) => {
+        if (!merged.find((m) => String(m.id) === String(o.id))) merged.push(o);
+      });
+      this.orders = merged.sort((a,b)=>Number(b.id)-Number(a.id));
+      localStorage.setItem(this.storageKey, JSON.stringify({
+        orders: this.orders,
+        batches: this.batches,
+      }));
+      // atualizar UI se estiver na planilha
+      if (window.app?.currentView === "sheet" && window.app.renderOrdersSheet) {
+        window.app.renderOrdersSheet();
+      }
+    });
   }
 
   setupFirebaseErrorListener() {

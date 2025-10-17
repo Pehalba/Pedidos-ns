@@ -29,6 +29,7 @@ class App {
   async init() {
     // Carregar dados do localStorage/Firebase
     await this.store.loadData();
+    this.store.startOrdersRealtime();
 
     // Configurar event listeners
     this.setupEventListeners();
@@ -238,6 +239,9 @@ class App {
       case "orders":
         this.renderOrders();
         break;
+      case "sheet":
+        this.renderOrdersSheet();
+        break;
       case "import":
         this.renderImport();
         break;
@@ -252,6 +256,149 @@ class App {
 
     // Reaplicar autenticação após renderizar novos elementos
     this.auth.updateUI();
+  }
+
+  renderOrdersSheet() {
+    const body = document.getElementById("orders-sheet-body");
+    const total = document.getElementById("sheet-total");
+    const searchInput = document.getElementById("sheet-search");
+    const freightFilter = document.getElementById("sheet-freight-filter");
+    if (!body) return;
+
+    const allOrders = [...this.store.getOrders()].sort(
+      (a, b) => Number(b.id) - Number(a.id)
+    );
+
+    const query = (searchInput?.value || "").toLowerCase().trim();
+    const freight = freightFilter?.value || "";
+
+    const filtered = allOrders.filter((o) => {
+      if (query) {
+        const matchesName = (o.customerName || "").toLowerCase().includes(query);
+        const matchesId = String(o.id || "").includes(query);
+        if (!matchesName && !matchesId) return false;
+      }
+      if (!freight) return true;
+      if (o.batchCode) return freight === "PADRAO"; // em lote conta como padrão
+      return (o.shippingType || "PADRAO").toUpperCase() === freight;
+    });
+
+    total && (total.textContent = String(filtered.length));
+
+    const rows = filtered
+      .map((o) => {
+        const supplierStatus = o.supplierStatus || "Aguardando processamento";
+        const shippingStatus = o.shippingStatus || (o.batchCode ? "enviado" : "não enviado");
+        const freightLabel = o.batchCode
+          ? `padrão - ${o.batchCode}`
+          : (o.shippingType || "padrão").toLowerCase();
+        const created = o.createdAt ? new Date(o.createdAt) : null;
+        const createdStr = created
+          ? `${String(created.getDate()).padStart(2, "0")}/${String(
+              created.getMonth() + 1
+            ).padStart(2, "0")}/${created.getFullYear()}`
+          : "";
+        const wa = o.customerWhatsapp ? `https://wa.me/55${o.customerWhatsapp}` : "";
+        return `
+          <tr data-order-id="${o.id}">
+            <td>#${String(o.id).padStart(3, "0")}</td>
+            <td>${o.productName || ""}</td>
+            <td class="status-cell status-supplier">
+              <select onchange="window.app.updateSupplierStatus('${o.id}', this)">
+                ${["Aguardando processamento","Pago","Encaminhado","Enviado"].map(s=>`<option ${s===supplierStatus?"selected":""}>${s}</option>`).join("")}
+              </select>
+            </td>
+            <td class="status-cell status-shipping">
+              <select onchange="window.app.updateShippingStatus('${o.id}', this)">
+                ${["não enviado","enviado","alfandegado"].map(s=>`<option ${s===shippingStatus?"selected":""}>${s}</option>`).join("")}
+              </select>
+            </td>
+            <td>${freightLabel}</td>
+            <td>${o.customerName || ""}</td>
+            <td>${wa ? `<a href="${wa}" target="_blank">${o.customerWhatsapp}</a>` : (o.customerWhatsapp||"")}</td>
+            <td>${createdStr}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    body.innerHTML = rows;
+
+    // bind controls
+    if (searchInput && !searchInput._bound) {
+      searchInput._bound = true;
+      searchInput.addEventListener("input", () => this.renderOrdersSheet());
+    }
+    if (freightFilter && !freightFilter._bound) {
+      freightFilter._bound = true;
+      freightFilter.addEventListener("change", () => this.renderOrdersSheet());
+    }
+
+    const exportBtn = document.getElementById("sheet-export");
+    if (exportBtn && !exportBtn._bound) {
+      exportBtn._bound = true;
+      exportBtn.addEventListener("click", () => this.exportSheetCSV());
+    }
+  }
+
+  async updateSupplierStatus(orderId, selectEl) {
+    const value = selectEl.value;
+    const order = this.store.getOrder(orderId);
+    const prev = order?.supplierStatus;
+    order.supplierStatus = value;
+    this.store.saveData();
+    const res = await this.store.firebase.updateOrder(orderId, { supplierStatus: value, updatedAt: new Date().toISOString() });
+    if (!res?.success) {
+      order.supplierStatus = prev;
+      this.store.saveData();
+      this.ui.showToast("Falha ao salvar status do fornecedor", "error");
+      this.renderOrdersSheet();
+    }
+  }
+
+  async updateShippingStatus(orderId, selectEl) {
+    const value = selectEl.value;
+    const order = this.store.getOrder(orderId);
+    const prev = order?.shippingStatus;
+    order.shippingStatus = value;
+    this.store.saveData();
+    const res = await this.store.firebase.updateOrder(orderId, { shippingStatus: value, updatedAt: new Date().toISOString() });
+    if (!res?.success) {
+      order.shippingStatus = prev;
+      this.store.saveData();
+      this.ui.showToast("Falha ao salvar status de envio", "error");
+      this.renderOrdersSheet();
+    }
+  }
+
+  exportSheetCSV() {
+    const body = document.getElementById("orders-sheet-body");
+    if (!body) return;
+    const rows = [...body.querySelectorAll("tr")].map((tr) =>
+      [...tr.children].map((td) => td.textContent.replace(/\s+/g, " ").trim())
+    );
+    const header = [
+      "Pedido",
+      "Produto",
+      "Status no fornecedor",
+      "Status de envio",
+      "Frete",
+      "Nome do cliente",
+      "WhatsApp",
+      "Data do pedido",
+    ];
+    const csv = [header, ...rows]
+      .map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `planilha-pedidos-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   renderOrders() {

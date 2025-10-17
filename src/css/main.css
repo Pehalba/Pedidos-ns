@@ -1340,6 +1340,64 @@ body {
   overflow-x: hidden;
 }
 
+/* ===== PLANILHA DE PEDIDOS ===== */
+.sheet-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.orders-sheet-wrapper {
+  margin-top: 12px;
+  overflow: auto;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 8px;
+  background: white;
+}
+
+.orders-sheet {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.orders-sheet thead th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  z-index: 1;
+  text-align: left;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.orders-sheet tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.orders-sheet tbody tr:hover {
+  background: #f9fbff;
+}
+
+.status-cell select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.2);
+  background: #fff;
+}
+
+.status-supplier select { background: rgba(59,130,246,0.06); }
+.status-shipping select { background: rgba(16,185,129,0.08); }
+
+@media (max-width: 640px) {
+  .sheet-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 .express-order-card {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;

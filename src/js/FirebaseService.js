@@ -6,6 +6,26 @@ export class FirebaseService {
     this.init();
   }
 
+  // Realtime listeners
+  onOrdersSnapshot(callback) {
+    if (!this.isInitialized || !this.db) return () => {};
+    try {
+      const unsubscribe = this.db.collection("orders").onSnapshot(
+        (snap) => {
+          const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          callback(orders);
+        },
+        (error) => {
+          console.error("Erro no listener de pedidos:", error);
+        }
+      );
+      return unsubscribe;
+    } catch (e) {
+      console.error("Erro ao iniciar listener de pedidos:", e);
+      return () => {};
+    }
+  }
+
   init() {
     try {
       // Verificar se o Firebase já foi inicializado
