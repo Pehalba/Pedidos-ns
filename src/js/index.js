@@ -265,9 +265,11 @@ class App {
     const freightFilter = document.getElementById("sheet-freight-filter");
     if (!body) return;
 
-    const allOrders = [...this.store.getOrders()].sort(
-      (a, b) => Number(b.id) - Number(a.id)
-    );
+    const allOrders = [...this.store.getOrders()].sort((a, b) => {
+      const idA = parseInt(String(a.id || "0"), 10);
+      const idB = parseInt(String(b.id || "0"), 10);
+      return idB - idA; // decrescente
+    });
 
     const query = (searchInput?.value || "").toLowerCase().trim();
     const freight = freightFilter?.value || "";
@@ -286,7 +288,14 @@ class App {
     });
 
     // Garantir ordenação decrescente por ID numérico após filtros
-    const sortedFiltered = filtered.sort((a, b) => Number(b.id) - Number(a.id));
+    const sortedFiltered = filtered.sort((a, b) => {
+      const idA = parseInt(String(a.id || "0"), 10);
+      const idB = parseInt(String(b.id || "0"), 10);
+      return idB - idA; // decrescente
+    });
+
+    // Debug: verificar ordenação
+    console.log("IDs ordenados:", sortedFiltered.slice(0, 5).map(o => o.id));
 
     total && (total.textContent = String(sortedFiltered.length));
 
