@@ -285,9 +285,12 @@ class App {
       return (o.shippingType || "PADRAO").toUpperCase() === freight;
     });
 
-    total && (total.textContent = String(filtered.length));
+    // Garantir ordenação decrescente por ID numérico após filtros
+    const sortedFiltered = filtered.sort((a, b) => Number(b.id) - Number(a.id));
 
-    const rows = filtered
+    total && (total.textContent = String(sortedFiltered.length));
+
+    const rows = sortedFiltered
       .map((o) => {
         const supplierStatus = o.supplierStatus || "Aguardando processamento";
         const shippingStatus =
@@ -371,16 +374,18 @@ class App {
     this.applyStatusSelectStyles();
 
     // aplicar automações baseadas no lote
-    this.applyAutoStatusesFromBatch(filtered);
+    this.applyAutoStatusesFromBatch(sortedFiltered);
   }
 
   getBatchNameFromCode(code) {
     const batch = this.store.getBatches().find((b) => b.code === code);
-    return batch ? (batch.name || batch.code) : code;
+    return batch ? batch.name || batch.code : code;
   }
 
   applyStatusSelectStyles() {
-    const supplierSelects = document.querySelectorAll(".supplier-status-select");
+    const supplierSelects = document.querySelectorAll(
+      ".supplier-status-select"
+    );
     supplierSelects.forEach((sel) => {
       sel.classList.remove(
         "supplier--aguardando",
@@ -391,10 +396,13 @@ class App {
       const val = sel.value.toLowerCase();
       if (val.startsWith("aguard")) sel.classList.add("supplier--aguardando");
       else if (val === "pago") sel.classList.add("supplier--pago");
-      else if (val === "encaminhado") sel.classList.add("supplier--encaminhado");
+      else if (val === "encaminhado")
+        sel.classList.add("supplier--encaminhado");
       else if (val === "enviado") sel.classList.add("supplier--enviado");
     });
-    const shippingSelects = document.querySelectorAll(".shipping-status-select");
+    const shippingSelects = document.querySelectorAll(
+      ".shipping-status-select"
+    );
     shippingSelects.forEach((sel) => {
       sel.classList.remove(
         "shipping--nao-enviado",
@@ -402,9 +410,11 @@ class App {
         "shipping--alfandegado"
       );
       const val = sel.value.toLowerCase();
-      if (val === "não enviado" || val === "nao enviado") sel.classList.add("shipping--nao-enviado");
+      if (val === "não enviado" || val === "nao enviado")
+        sel.classList.add("shipping--nao-enviado");
       else if (val === "enviado") sel.classList.add("shipping--enviado");
-      else if (val === "alfandegado") sel.classList.add("shipping--alfandegado");
+      else if (val === "alfandegado")
+        sel.classList.add("shipping--alfandegado");
       // also bind change once
       if (!sel._colorBound) {
         sel._colorBound = true;
@@ -423,7 +433,8 @@ class App {
       if (!batch) continue;
       if (batch.isShipped && !batch.isReceived && !batch.isAbnormal) {
         const needSupplier = o.supplierStatus !== "Enviado";
-        const needShipping = (o.shippingStatus || "não enviado").toLowerCase() !== "enviado";
+        const needShipping =
+          (o.shippingStatus || "não enviado").toLowerCase() !== "enviado";
         if (needSupplier || needShipping) {
           const updates = {};
           if (needSupplier) updates.supplierStatus = "Enviado";
