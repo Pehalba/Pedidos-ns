@@ -1350,7 +1350,7 @@ body {
 .orders-sheet-wrapper {
   margin-top: 12px;
   overflow: auto;
-  border: 1px solid rgba(0,0,0,0.08);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 8px;
   background: white;
 }
@@ -1369,12 +1369,12 @@ body {
   text-align: left;
   font-weight: 600;
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .orders-sheet tbody td {
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .orders-sheet tbody tr:hover {
@@ -1384,12 +1384,53 @@ body {
 .status-cell select {
   padding: 6px 8px;
   border-radius: 6px;
-  border: 1px solid rgba(0,0,0,0.2);
+  border: 1px solid rgba(0, 0, 0, 0.2);
   background: #fff;
 }
 
-.status-supplier select { background: rgba(59,130,246,0.06); }
-.status-shipping select { background: rgba(16,185,129,0.08); }
+.status-supplier select {
+  background: rgba(59, 130, 246, 0.06);
+}
+.status-shipping select {
+  background: rgba(16, 185, 129, 0.08);
+}
+
+/* Color tags for selects */
+.supplier-status-select {
+  color: #111827;
+}
+.supplier-status-select.supplier--aguardando {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+.supplier-status-select.supplier--pago {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+.supplier-status-select.supplier--encaminhado {
+  background: rgba(139, 92, 246, 0.18);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+.supplier-status-select.supplier--enviado {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.shipping-status-select {
+  color: #111827;
+}
+.shipping-status-select.shipping--nao-enviado {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+.shipping-status-select.shipping--enviado {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+.shipping-status-select.shipping--alfandegado {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.5);
+}
 
 @media (max-width: 640px) {
   .sheet-controls {

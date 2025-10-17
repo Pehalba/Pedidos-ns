@@ -274,7 +274,9 @@ class App {
 
     const filtered = allOrders.filter((o) => {
       if (query) {
-        const matchesName = (o.customerName || "").toLowerCase().includes(query);
+        const matchesName = (o.customerName || "")
+          .toLowerCase()
+          .includes(query);
         const matchesId = String(o.id || "").includes(query);
         if (!matchesName && !matchesId) return false;
       }
@@ -288,9 +290,10 @@ class App {
     const rows = filtered
       .map((o) => {
         const supplierStatus = o.supplierStatus || "Aguardando processamento";
-        const shippingStatus = o.shippingStatus || (o.batchCode ? "enviado" : "não enviado");
+        const shippingStatus =
+          o.shippingStatus || (o.batchCode ? "enviado" : "não enviado");
         const freightLabel = o.batchCode
-          ? `padrão - ${o.batchCode}`
+          ? `padrão - ${this.getBatchNameFromCode(o.batchCode)}`
           : (o.shippingType || "padrão").toLowerCase();
         const created = o.createdAt ? new Date(o.createdAt) : null;
         const createdStr = created
@@ -298,24 +301,48 @@ class App {
               created.getMonth() + 1
             ).padStart(2, "0")}/${created.getFullYear()}`
           : "";
-        const wa = o.customerWhatsapp ? `https://wa.me/55${o.customerWhatsapp}` : "";
+        const wa = o.customerWhatsapp
+          ? `https://wa.me/55${o.customerWhatsapp}`
+          : "";
         return `
           <tr data-order-id="${o.id}">
             <td>#${String(o.id).padStart(3, "0")}</td>
             <td>${o.productName || ""}</td>
             <td class="status-cell status-supplier">
-              <select onchange="window.app.updateSupplierStatus('${o.id}', this)">
-                ${["Aguardando processamento","Pago","Encaminhado","Enviado"].map(s=>`<option ${s===supplierStatus?"selected":""}>${s}</option>`).join("")}
+              <select class="supplier-status-select" onchange="window.app.updateSupplierStatus('${
+                o.id
+              }', this)">
+                ${["Aguardando processamento", "Pago", "Encaminhado", "Enviado"]
+                  .map(
+                    (s) =>
+                      `<option ${
+                        s === supplierStatus ? "selected" : ""
+                      }>${s}</option>`
+                  )
+                  .join("")}
               </select>
             </td>
             <td class="status-cell status-shipping">
-              <select onchange="window.app.updateShippingStatus('${o.id}', this)">
-                ${["não enviado","enviado","alfandegado"].map(s=>`<option ${s===shippingStatus?"selected":""}>${s}</option>`).join("")}
+              <select class="shipping-status-select" onchange="window.app.updateShippingStatus('${
+                o.id
+              }', this)">
+                ${["não enviado", "enviado", "alfandegado"]
+                  .map(
+                    (s) =>
+                      `<option ${
+                        s === shippingStatus ? "selected" : ""
+                      }>${s}</option>`
+                  )
+                  .join("")}
               </select>
             </td>
             <td>${freightLabel}</td>
             <td>${o.customerName || ""}</td>
-            <td>${wa ? `<a href="${wa}" target="_blank">${o.customerWhatsapp}</a>` : (o.customerWhatsapp||"")}</td>
+            <td>${
+              wa
+                ? `<a href="${wa}" target="_blank">${o.customerWhatsapp}</a>`
+                : o.customerWhatsapp || ""
+            }</td>
             <td>${createdStr}</td>
           </tr>
         `;
@@ -339,6 +366,78 @@ class App {
       exportBtn._bound = true;
       exportBtn.addEventListener("click", () => this.exportSheetCSV());
     }
+
+    // aplicar classes de cor nos selects
+    this.applyStatusSelectStyles();
+
+    // aplicar automações baseadas no lote
+    this.applyAutoStatusesFromBatch(filtered);
+  }
+
+  getBatchNameFromCode(code) {
+    const batch = this.store.getBatches().find((b) => b.code === code);
+    return batch ? (batch.name || batch.code) : code;
+  }
+
+  applyStatusSelectStyles() {
+    const supplierSelects = document.querySelectorAll(".supplier-status-select");
+    supplierSelects.forEach((sel) => {
+      sel.classList.remove(
+        "supplier--aguardando",
+        "supplier--pago",
+        "supplier--encaminhado",
+        "supplier--enviado"
+      );
+      const val = sel.value.toLowerCase();
+      if (val.startsWith("aguard")) sel.classList.add("supplier--aguardando");
+      else if (val === "pago") sel.classList.add("supplier--pago");
+      else if (val === "encaminhado") sel.classList.add("supplier--encaminhado");
+      else if (val === "enviado") sel.classList.add("supplier--enviado");
+    });
+    const shippingSelects = document.querySelectorAll(".shipping-status-select");
+    shippingSelects.forEach((sel) => {
+      sel.classList.remove(
+        "shipping--nao-enviado",
+        "shipping--enviado",
+        "shipping--alfandegado"
+      );
+      const val = sel.value.toLowerCase();
+      if (val === "não enviado" || val === "nao enviado") sel.classList.add("shipping--nao-enviado");
+      else if (val === "enviado") sel.classList.add("shipping--enviado");
+      else if (val === "alfandegado") sel.classList.add("shipping--alfandegado");
+      // also bind change once
+      if (!sel._colorBound) {
+        sel._colorBound = true;
+        sel.addEventListener("change", () => this.applyStatusSelectStyles());
+      }
+    });
+  }
+
+  async applyAutoStatusesFromBatch(ordersList) {
+    const orders = ordersList || this.store.getOrders();
+    const batches = this.store.getBatches();
+    const byCode = new Map(batches.map((b) => [b.code, b]));
+    for (const o of orders) {
+      if (!o.batchCode) continue;
+      const batch = byCode.get(o.batchCode);
+      if (!batch) continue;
+      if (batch.isShipped && !batch.isReceived && !batch.isAbnormal) {
+        const needSupplier = o.supplierStatus !== "Enviado";
+        const needShipping = (o.shippingStatus || "não enviado").toLowerCase() !== "enviado";
+        if (needSupplier || needShipping) {
+          const updates = {};
+          if (needSupplier) updates.supplierStatus = "Enviado";
+          if (needShipping) updates.shippingStatus = "enviado";
+          updates.updatedAt = new Date().toISOString();
+          // update local and remote
+          Object.assign(o, updates);
+          this.store.saveData();
+          await this.store.firebase.updateOrder(String(o.id), updates);
+        }
+      }
+    }
+    // re-render to reflect possible changes
+    if (this.currentView === "sheet") this.renderOrdersSheet();
   }
 
   async updateSupplierStatus(orderId, selectEl) {
@@ -347,7 +446,10 @@ class App {
     const prev = order?.supplierStatus;
     order.supplierStatus = value;
     this.store.saveData();
-    const res = await this.store.firebase.updateOrder(orderId, { supplierStatus: value, updatedAt: new Date().toISOString() });
+    const res = await this.store.firebase.updateOrder(orderId, {
+      supplierStatus: value,
+      updatedAt: new Date().toISOString(),
+    });
     if (!res?.success) {
       order.supplierStatus = prev;
       this.store.saveData();
@@ -362,7 +464,10 @@ class App {
     const prev = order?.shippingStatus;
     order.shippingStatus = value;
     this.store.saveData();
-    const res = await this.store.firebase.updateOrder(orderId, { shippingStatus: value, updatedAt: new Date().toISOString() });
+    const res = await this.store.firebase.updateOrder(orderId, {
+      shippingStatus: value,
+      updatedAt: new Date().toISOString(),
+    });
     if (!res?.success) {
       order.shippingStatus = prev;
       this.store.saveData();
@@ -394,7 +499,9 @@ class App {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `planilha-pedidos-${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = `planilha-pedidos-${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
