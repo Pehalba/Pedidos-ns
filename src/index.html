@@ -130,7 +130,11 @@
                     <span
                       class="customer-message-text"
                       id="customer-message-text"
-                      >O seu pedido foi enviado da fábrica internacional para a nossa loja em Curitiba-PR, caso desejo você pode solicitar uma foto do produto ao nosso suporte do WhatsApp. Assim que chegar, será redirecionado para sua residência. L0</span
+                      >L0 .O seu pedido foi enviado da fábrica internacional
+                      para a nossa loja em Curitiba-PR, caso desejo você pode
+                      solicitar uma foto do produto ao nosso suporte do
+                      WhatsApp. Assim que chegar, será redirecionado para sua
+                      residência.</span
                     >
                     <button
                       class="btn btn--small btn--secondary copy-btn"
@@ -145,55 +149,40 @@
 
               <!-- Dashboard Search -->
               <div class="dashboard-search">
-              <div class="dashboard-filters-row">
-                <input
-                  type="text"
-                  id="dashboard-search"
-                  class="input"
-                  placeholder="Buscar por nome do lote, produto ou nº do pedido..."
-                />
+                <div class="dashboard-filters-row">
+                  <input
+                    type="text"
+                    id="dashboard-search"
+                    class="input"
+                    placeholder="Buscar por nome do lote, produto ou nº do pedido..."
+                  />
 
-                <select id="filter-shipping-status" class="input">
-                  <option value="">Status de Envio (Todos)</option>
-                  <option value="NOT_SHIPPED">Não Enviado</option>
-                  <option value="SHIPPED">Enviado</option>
-                  <option value="RECEIVED">Recebido</option>
-                  <option value="ABNORMAL">Status Anormal</option>
-                </select>
+                  <select id="filter-shipping-status" class="input">
+                    <option value="">Status de Envio (Todos)</option>
+                    <option value="NOT_SHIPPED">Não Enviado</option>
+                    <option value="SHIPPED">Enviado</option>
+                    <option value="RECEIVED">Recebido</option>
+                    <option value="ABNORMAL">Status Anormal</option>
+                  </select>
 
-                <select id="filter-destination" class="input">
-                  <option value="">Destino (Todos)</option>
-                  <option value="pedro">Pedro</option>
-                  <option value="edu">Edu</option>
-                  <option value="rodrigo">Rodrigo</option>
-                </select>
+                  <select id="filter-destination" class="input">
+                    <option value="">Destino (Todos)</option>
+                    <option value="pedro">Pedro</option>
+                    <option value="edu">Edu</option>
+                    <option value="rodrigo">Rodrigo</option>
+                  </select>
 
-                <select id="filter-supplier" class="input">
-                  <option value="">Fornecedor (Todos)</option>
-                </select>
-              </div>
+                  <select id="filter-supplier" class="input">
+                    <option value="">Fornecedor (Todos)</option>
+                  </select>
+                </div>
               </div>
 
               <!-- Batches List -->
               <div id="batches-list" class="batches-list"></div>
             </div>
 
-            <!-- Express Orders Section -->
-            <div class="express-section">
-              <div class="express-section__header">
-                <h3 class="express-section__title">
-                  🚀 Pedidos Expresso (Envios Rápidos)
-                </h3>
-                <span class="express-section__count" id="express-count">0</span>
-              </div>
-              <div class="express-section__description">
-                <p>
-                  Esses são os pedidos que serão enviados diretos para a casa do
-                  cliente
-                </p>
-              </div>
-              <div id="express-orders-list" class="express-orders-list"></div>
-            </div>
+            
           </div>
         </div>
 

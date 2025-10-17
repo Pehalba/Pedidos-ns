@@ -176,7 +176,9 @@ class App {
       shippingSelect.addEventListener("change", () => this.filterDashboard());
     }
     if (destinationSelect) {
-      destinationSelect.addEventListener("change", () => this.filterDashboard());
+      destinationSelect.addEventListener("change", () =>
+        this.filterDashboard()
+      );
     }
     if (supplierSelect) {
       this.populateSuppliersFilter();
@@ -244,10 +246,8 @@ class App {
 
   renderDashboard() {
     const batches = this.store.getBatches();
-    const orders = this.store.getOrders();
 
     this.ui.renderBatchesList(batches, this.store);
-    this.ui.renderExpressOrdersList(orders);
     this.updateStatusCounts();
 
     // Reaplicar autenticação após renderizar novos elementos
@@ -320,12 +320,16 @@ class App {
         .map((orderId) => this.store.getOrder(orderId))
         .filter(Boolean);
 
-      if (batchOrders.some((order) =>
-        (order.productName || "").toLowerCase().includes(searchTerm)
-      )) return true;
+      if (
+        batchOrders.some((order) =>
+          (order.productName || "").toLowerCase().includes(searchTerm)
+        )
+      )
+        return true;
 
       // Novo: Buscar por número do pedido que retorna o lote
-      if (batchOrders.some((order) => ("" + order.id).includes(searchTerm))) return true;
+      if (batchOrders.some((order) => ("" + order.id).includes(searchTerm)))
+        return true;
 
       return false;
     });
@@ -342,7 +346,9 @@ class App {
     const current = supplierSelect.value;
     supplierSelect.innerHTML =
       '<option value="">Fornecedor (Todos)</option>' +
-      suppliers.map((s) => `<option value="${s.id}">${s.name}</option>`).join("");
+      suppliers
+        .map((s) => `<option value="${s.id}">${s.name}</option>`)
+        .join("");
     if ([...supplierSelect.options].some((o) => o.value === current)) {
       supplierSelect.value = current;
     }
@@ -365,7 +371,9 @@ class App {
       if (statusVal === "NOT_SHIPPED") {
         batches = batches.filter((b) => !b.isShipped);
       } else if (statusVal === "SHIPPED") {
-        batches = batches.filter((b) => b.isShipped && !b.isReceived && !b.isAbnormal);
+        batches = batches.filter(
+          (b) => b.isShipped && !b.isReceived && !b.isAbnormal
+        );
       } else if (statusVal === "RECEIVED") {
         batches = batches.filter((b) => b.isReceived);
       } else if (statusVal === "ABNORMAL") {
@@ -374,7 +382,9 @@ class App {
     }
 
     if (destinationVal) {
-      batches = batches.filter((b) => (b.destination || "pedro") === destinationVal);
+      batches = batches.filter(
+        (b) => (b.destination || "pedro") === destinationVal
+      );
     }
 
     if (supplierVal) {
@@ -387,7 +397,12 @@ class App {
         const batchOrders = (batch.orderIds || [])
           .map((orderId) => this.store.getOrder(orderId))
           .filter(Boolean);
-        if (batchOrders.some((o) => (o.productName || "").toLowerCase().includes(query))) return true;
+        if (
+          batchOrders.some((o) =>
+            (o.productName || "").toLowerCase().includes(query)
+          )
+        )
+          return true;
         if (batchOrders.some((o) => ("" + o.id).includes(query))) return true;
         return false;
       });
@@ -659,9 +674,7 @@ class App {
 
     if (messageText && copyBtn) {
       // Normalizar quebras e múltiplos espaços para uma única linha
-      const textToCopy = messageText.textContent
-        .replace(/\s+/g, " ")
-        .trim();
+      const textToCopy = messageText.textContent.replace(/\s+/g, " ").trim();
 
       // Usar a API moderna de clipboard
       if (navigator.clipboard && window.isSecureContext) {
