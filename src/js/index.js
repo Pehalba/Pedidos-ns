@@ -294,8 +294,6 @@ class App {
       return idB - idA; // decrescente
     });
 
-    // Debug: verificar ordenação
-    console.log("IDs ordenados:", sortedFiltered.slice(0, 5).map(o => o.id));
 
     total && (total.textContent = String(sortedFiltered.length));
 
