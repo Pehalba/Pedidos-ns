@@ -232,7 +232,7 @@ export class Batch {
       const hasBatchCode = order.batchCode && order.batchCode.trim() !== "";
 
       // Debug específico para pedidos problemáticos
-      const problemOrders = ['389', '387', '503', '498', '612', '890'];
+      const problemOrders = ["389", "387", "503", "498", "612", "890"];
       if (problemOrders.includes(String(order.id))) {
         console.log(`🔍 DEBUG Pedido ${order.id}:`, {
           id: order.id,
@@ -240,14 +240,16 @@ export class Batch {
           hasBatchCode: hasBatchCode,
           currentBatchCode: this.currentBatchCode,
           shippingType: order.shippingType,
-          paymentStatus: order.paymentStatus
+          paymentStatus: order.paymentStatus,
         });
       }
 
       // Se estamos editando um lote, permitir pedidos que já estão neste lote
       if (this.currentBatchCode && order.batchCode === this.currentBatchCode) {
         if (problemOrders.includes(String(order.id))) {
-          console.log(`✅ Pedido ${order.id} permitido - está no lote atual ${this.currentBatchCode}`);
+          console.log(
+            `✅ Pedido ${order.id} permitido - está no lote atual ${this.currentBatchCode}`
+          );
         }
         return true;
       }
@@ -255,23 +257,26 @@ export class Batch {
       // Se o pedido já está em outro lote, não está disponível
       if (hasBatchCode && order.batchCode !== this.currentBatchCode) {
         if (problemOrders.includes(String(order.id))) {
-          console.log(`❌ Pedido ${order.id} rejeitado - já está no lote ${order.batchCode}`);
+          console.log(
+            `❌ Pedido ${order.id} rejeitado - já está no lote ${order.batchCode}`
+          );
         }
         return false;
       }
 
-      // Verificar critérios básicos
+      // Verificar critérios básicos - CORRIGIDO: verificar se NÃO tem batchCode
       const isEligible =
         order.shippingType === "PADRAO" &&
         order.paymentStatus === "PAGO" &&
-        !hasBatchCode; // Não deve ter batchCode
+        !order.batchCode; // ✅ CORRIGIDO: verificar diretamente se não tem batchCode
 
       if (problemOrders.includes(String(order.id))) {
         console.log(`🔍 Pedido ${order.id} elegibilidade:`, {
           isEligible: isEligible,
           shippingType: order.shippingType,
           paymentStatus: order.paymentStatus,
-          hasBatchCode: hasBatchCode
+          hasBatchCode: hasBatchCode,
+          batchCode: order.batchCode,
         });
       }
 
