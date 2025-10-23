@@ -702,17 +702,26 @@ export class Store {
     // Verificar se os pedidos mudaram de forma mais robusta
     const oldOrderIds = oldBatch.orderIds || [];
     const newOrderIds = newBatch.orderIds || [];
-    const pedidosMudaram = 
+    const pedidosMudaram =
       oldOrderIds.length !== newOrderIds.length ||
-      !oldOrderIds.every(id => newOrderIds.includes(id)) ||
-      !newOrderIds.every(id => oldOrderIds.includes(id));
+      !oldOrderIds.every((id) => newOrderIds.includes(id)) ||
+      !newOrderIds.every((id) => oldOrderIds.includes(id));
     console.log("Pedidos mudaram?", pedidosMudaram);
     console.log("Comparação detalhada:");
     console.log("- Antigos:", oldOrderIds);
     console.log("- Novos:", newOrderIds);
-    console.log("- Tamanhos iguais:", oldOrderIds.length === newOrderIds.length);
-    console.log("- Todos antigos estão nos novos:", oldOrderIds.every(id => newOrderIds.includes(id)));
-    console.log("- Todos novos estão nos antigos:", newOrderIds.every(id => oldOrderIds.includes(id)));
+    console.log(
+      "- Tamanhos iguais:",
+      oldOrderIds.length === newOrderIds.length
+    );
+    console.log(
+      "- Todos antigos estão nos novos:",
+      oldOrderIds.every((id) => newOrderIds.includes(id))
+    );
+    console.log(
+      "- Todos novos estão nos antigos:",
+      newOrderIds.every((id) => oldOrderIds.includes(id))
+    );
 
     if (pedidosMudaram) {
       console.log("Pedidos mudaram, atualizando associações...");
@@ -806,7 +815,9 @@ export class Store {
       }
 
       // Adicionar novas associações
-      const newOrderIdsToAdd = newOrderIds.filter(id => !oldOrderIds.includes(id));
+      const newOrderIdsToAdd = newOrderIds.filter(
+        (id) => !oldOrderIds.includes(id)
+      );
       if (newOrderIdsToAdd.length > 0) {
         console.log("Associando novos pedidos ao lote:", newOrderIdsToAdd);
         await this.associateOrdersToBatch(newOrderIdsToAdd, code);
@@ -1070,9 +1081,12 @@ export class Store {
 
     // Atualizar a lista de orderIds do lote
     const existingOrderIds = batch.orderIds || [];
-    const newOrderIds = orderIds.filter(id => !existingOrderIds.includes(id));
+    const newOrderIds = orderIds.filter((id) => !existingOrderIds.includes(id));
     batch.orderIds = [...existingOrderIds, ...newOrderIds];
-    console.log(`Lote ${batchCode} agora tem ${batch.orderIds.length} pedidos:`, batch.orderIds);
+    console.log(
+      `Lote ${batchCode} agora tem ${batch.orderIds.length} pedidos:`,
+      batch.orderIds
+    );
 
     // Salvar alterações no Firebase
     if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {
@@ -1135,44 +1149,12 @@ export class Store {
   }
 
   getAvailableOrders() {
-    console.log("=== DEBUG getAvailableOrders ===");
-    console.log("Total de pedidos:", this.orders.length);
-
-    // Debug: verificar todos os pedidos e seus batchCodes
-    this.orders.forEach((order) => {
-      if (order.shippingType === "PADRAO" && order.paymentStatus === "PAGO") {
-        console.log(
-          `Pedido ${order.id}: batchCode = "${
-            order.batchCode
-          }" (tipo: ${typeof order.batchCode})`
-        );
-      }
-    });
-
     const available = this.orders.filter(
       (order) =>
         order.shippingType === "PADRAO" &&
         order.paymentStatus === "PAGO" &&
         !order.batchCode
     );
-
-    // Debug: verificar pedidos com batchCode
-    const ordersWithBatch = this.orders.filter((order) => order.batchCode);
-    if (ordersWithBatch.length > 0) {
-      console.log(
-        "Pedidos já em lotes:",
-        ordersWithBatch.map((o) => ({ id: o.id, batchCode: o.batchCode }))
-      );
-    }
-
-    console.log(
-      `Pedidos disponíveis para lotes: ${available.length} de ${this.orders.length}`
-    );
-    console.log(
-      "Pedidos disponíveis:",
-      available.map((o) => o.id)
-    );
-    console.log("=== FIM DEBUG getAvailableOrders ===");
 
     return available;
   }
@@ -1249,7 +1231,9 @@ export class Store {
 
     // Se há erros, executar reparo automático
     if (errorsFound > 0) {
-      console.log("⚠️ Inconsistências detectadas! Executando reparo automático...");
+      console.log(
+        "⚠️ Inconsistências detectadas! Executando reparo automático..."
+      );
       this.repairDataIntegrity();
     }
   }
