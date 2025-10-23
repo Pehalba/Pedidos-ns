@@ -17,10 +17,16 @@ export class Store {
 
   startOrdersRealtime() {
     if (this.ordersUnsubscribe) {
-      try { this.ordersUnsubscribe(); } catch (e) {}
+      try {
+        this.ordersUnsubscribe();
+      } catch (e) {}
       this.ordersUnsubscribe = null;
     }
-    if (!this.firebase || !this.firebase.isInitialized || this.firebase.quotaExceeded) {
+    if (
+      !this.firebase ||
+      !this.firebase.isInitialized ||
+      this.firebase.quotaExceeded
+    ) {
       return;
     }
     this.ordersUnsubscribe = this.firebase.onOrdersSnapshot((orders) => {
@@ -39,11 +45,14 @@ export class Store {
       localOrders.forEach((o) => {
         if (!merged.find((m) => String(m.id) === String(o.id))) merged.push(o);
       });
-      this.orders = merged.sort((a,b)=>Number(b.id)-Number(a.id));
-      localStorage.setItem(this.storageKey, JSON.stringify({
-        orders: this.orders,
-        batches: this.batches,
-      }));
+      this.orders = merged.sort((a, b) => Number(b.id) - Number(a.id));
+      localStorage.setItem(
+        this.storageKey,
+        JSON.stringify({
+          orders: this.orders,
+          batches: this.batches,
+        })
+      );
       // atualizar UI se estiver na planilha
       if (window.app?.currentView === "sheet" && window.app.renderOrdersSheet) {
         window.app.renderOrdersSheet();
@@ -690,15 +699,26 @@ export class Store {
     console.log("Pedidos antigos:", oldBatch.orderIds);
     console.log("Pedidos novos:", newBatch.orderIds);
 
-    const pedidosMudaram =
-      JSON.stringify(newBatch.orderIds) !== JSON.stringify(oldBatch.orderIds);
+    // Verificar se os pedidos mudaram de forma mais robusta
+    const oldOrderIds = oldBatch.orderIds || [];
+    const newOrderIds = newBatch.orderIds || [];
+    const pedidosMudaram = 
+      oldOrderIds.length !== newOrderIds.length ||
+      !oldOrderIds.every(id => newOrderIds.includes(id)) ||
+      !newOrderIds.every(id => oldOrderIds.includes(id));
     console.log("Pedidos mudaram?", pedidosMudaram);
+    console.log("Comparação detalhada:");
+    console.log("- Antigos:", oldOrderIds);
+    console.log("- Novos:", newOrderIds);
+    console.log("- Tamanhos iguais:", oldOrderIds.length === newOrderIds.length);
+    console.log("- Todos antigos estão nos novos:", oldOrderIds.every(id => newOrderIds.includes(id)));
+    console.log("- Todos novos estão nos antigos:", newOrderIds.every(id => oldOrderIds.includes(id)));
 
     if (pedidosMudaram) {
       console.log("Pedidos mudaram, atualizando associações...");
       // Remover associações antigas
-      const removedOrderIds = oldBatch.orderIds.filter(
-        (id) => !newBatch.orderIds.includes(id)
+      const removedOrderIds = oldOrderIds.filter(
+        (id) => !newOrderIds.includes(id)
       );
       console.log("Pedidos a serem removidos:", removedOrderIds);
 
@@ -786,9 +806,10 @@ export class Store {
       }
 
       // Adicionar novas associações
-      if (newBatch.orderIds.length > 0) {
-        console.log("Associando novos pedidos ao lote...");
-        await this.associateOrdersToBatch(newBatch.orderIds, code);
+      const newOrderIdsToAdd = newOrderIds.filter(id => !oldOrderIds.includes(id));
+      if (newOrderIdsToAdd.length > 0) {
+        console.log("Associando novos pedidos ao lote:", newOrderIdsToAdd);
+        await this.associateOrdersToBatch(newOrderIdsToAdd, code);
         console.log("Novos pedidos associados com sucesso");
       } else {
         console.log("Nenhum pedido novo para associar");
@@ -1046,6 +1067,12 @@ export class Store {
         );
       }
     });
+
+    // Atualizar a lista de orderIds do lote
+    const existingOrderIds = batch.orderIds || [];
+    const newOrderIds = orderIds.filter(id => !existingOrderIds.includes(id));
+    batch.orderIds = [...existingOrderIds, ...newOrderIds];
+    console.log(`Lote ${batchCode} agora tem ${batch.orderIds.length} pedidos:`, batch.orderIds);
 
     // Salvar alterações no Firebase
     if (this.firebase.isInitialized && !this.firebase.quotaExceeded) {

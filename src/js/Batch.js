@@ -195,26 +195,49 @@ export class Batch {
     // Carregar pedidos disponíveis sem verificação de integridade para evitar travamentos
     const allOrders = this.store.getOrders();
     console.log("Total de pedidos:", allOrders.length);
+    
+    // Debug: verificar pedidos com batchCode
+    const ordersWithBatch = allOrders.filter(o => o.batchCode && o.batchCode.trim() !== "");
+    console.log("Pedidos com batchCode:", ordersWithBatch.map(o => ({ id: o.id, batchCode: o.batchCode })));
 
     const availableOrders = allOrders.filter((order) => {
-      const isEligible =
-        order.shippingType === "PADRAO" &&
-        order.paymentStatus === "PAGO" &&
-        (!order.batchCode || order.batchCode === "");
-
-      // Se estamos editando um lote, excluir pedidos que já estão neste lote
+      // Verificar se o pedido já está em algum lote
+      const hasBatchCode = order.batchCode && order.batchCode.trim() !== "";
+      
+      // Se estamos editando um lote, permitir pedidos que já estão neste lote
       if (this.currentBatchCode && order.batchCode === this.currentBatchCode) {
         console.log(
-          `Excluindo pedido ${order.id} que já está no lote ${this.currentBatchCode}`
+          `Incluindo pedido ${order.id} que já está no lote ${this.currentBatchCode}`
+        );
+        return true;
+      }
+      
+      // Se o pedido já está em outro lote, não está disponível
+      if (hasBatchCode && order.batchCode !== this.currentBatchCode) {
+        console.log(
+          `Excluindo pedido ${order.id} que já está no lote ${order.batchCode}`
         );
         return false;
       }
+
+      // Verificar critérios básicos
+      const isEligible =
+        order.shippingType === "PADRAO" &&
+        order.paymentStatus === "PAGO" &&
+        !hasBatchCode; // Não deve ter batchCode
 
       return isEligible;
     });
 
     console.log("Pedidos disponíveis para lote:", availableOrders.length);
     console.log("Pedidos disponíveis:", availableOrders);
+    
+    // Debug adicional: verificar se há pedidos duplicados
+    const availableIds = availableOrders.map(o => o.id);
+    const duplicateIds = availableIds.filter((id, index) => availableIds.indexOf(id) !== index);
+    if (duplicateIds.length > 0) {
+      console.warn("Pedidos duplicados encontrados:", duplicateIds);
+    }
 
     this.renderAvailableOrders(availableOrders);
   }

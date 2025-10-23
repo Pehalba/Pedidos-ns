@@ -53,7 +53,9 @@
               Dashboard
             </button>
             <button class="header__nav-btn" data-view="orders">Pedidos</button>
-            <button class="header__nav-btn" data-view="sheet">Planilha de Pedidos</button>
+            <button class="header__nav-btn" data-view="sheet">
+              Planilha de Pedidos
+            </button>
             <button class="header__nav-btn" data-view="import">
               Importar CSV
             </button>
@@ -191,17 +193,25 @@
             <div class="content__header">
               <h2 class="content__title">Planilha de Pedidos</h2>
               <div class="sheet-controls">
-                <input id="sheet-search" class="input" placeholder="Buscar por cliente ou nº do pedido" />
+                <input
+                  id="sheet-search"
+                  class="input"
+                  placeholder="Buscar por cliente ou nº do pedido"
+                />
                 <select id="sheet-freight-filter" class="input">
                   <option value="">Frete (Todos)</option>
                   <option value="PADRAO">Padrão</option>
                   <option value="EXPRESSO">Expresso</option>
                 </select>
-                <button id="sheet-export" class="btn btn--secondary">Exportar CSV</button>
+                <button id="sheet-export" class="btn btn--secondary">
+                  Exportar CSV
+                </button>
               </div>
             </div>
 
-            <div class="sheet-summary">Total de pedidos: <span id="sheet-total">0</span></div>
+            <div class="sheet-summary">
+              Total de pedidos: <span id="sheet-total">0</span>
+            </div>
 
             <div class="orders-sheet-wrapper">
               <table class="orders-sheet" id="orders-sheet">
