@@ -1247,14 +1247,10 @@ export class Store {
       `=== FIM VERIFICAÇÃO DE INTEGRIDADE - ${errorsFound} erros encontrados ===`
     );
 
-    // Se há erros, apenas logar (não executar reparo automático para economizar leituras)
+    // Se há erros, executar reparo automático
     if (errorsFound > 0) {
-      console.log(
-        "⚠️ Inconsistências detectadas! Reparo automático desabilitado para economizar leituras do Firebase."
-      );
-      console.log(
-        "💡 Para reparar, use a opção manual no menu de administração."
-      );
+      console.log("⚠️ Inconsistências detectadas! Executando reparo automático...");
+      this.repairDataIntegrity();
     }
   }
 

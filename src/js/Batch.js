@@ -246,29 +246,49 @@ export class Batch {
       }
     });
     console.log("=== FIM DEBUG PEDIDOS MENCIONADOS ===");
-    
+
     // Debug: verificar se há pedidos com batchCode vazio que deveriam estar em lotes
     console.log("=== VERIFICAÇÃO DE LOTES ===");
-    this.store.getBatches().forEach(batch => {
+    this.store.getBatches().forEach((batch) => {
       console.log(`Lote ${batch.code}:`, {
         name: batch.name,
         orderIds: batch.orderIds,
-        orderCount: batch.orderIds.length
+        orderCount: batch.orderIds.length,
       });
-      
+
       // Verificar se os pedidos do lote têm batchCode correto
-      batch.orderIds.forEach(orderId => {
-        const order = allOrders.find(o => o.id === orderId);
+      batch.orderIds.forEach((orderId) => {
+        const order = allOrders.find((o) => o.id === orderId);
         if (order) {
           if (order.batchCode !== batch.code) {
-            console.warn(`⚠️ Pedido ${orderId} está no lote ${batch.code} mas tem batchCode = "${order.batchCode}"`);
+            console.warn(
+              `⚠️ Pedido ${orderId} está no lote ${batch.code} mas tem batchCode = "${order.batchCode}"`
+            );
           }
         } else {
-          console.warn(`⚠️ Pedido ${orderId} está no lote ${batch.code} mas não foi encontrado`);
+          console.warn(
+            `⚠️ Pedido ${orderId} está no lote ${batch.code} mas não foi encontrado`
+          );
         }
       });
     });
     console.log("=== FIM VERIFICAÇÃO DE LOTES ===");
+
+    // Verificar se há inconsistências e executar reparo se necessário
+    const hasInconsistencies = this.store.getBatches().some(batch => {
+      return batch.orderIds.some(orderId => {
+        const order = allOrders.find(o => o.id === orderId);
+        return order && order.batchCode !== batch.code;
+      });
+    });
+
+    if (hasInconsistencies) {
+      console.log("🔧 Inconsistências detectadas! Executando reparo automático...");
+      this.store.checkDataIntegrity();
+      // Recarregar dados após reparo
+      const updatedOrders = this.store.getOrders();
+      console.log("Dados atualizados após reparo:", updatedOrders.length, "pedidos");
+    }
 
     const availableOrders = allOrders.filter((order) => {
       // Verificar se o pedido já está em algum lote
