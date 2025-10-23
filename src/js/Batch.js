@@ -195,16 +195,42 @@ export class Batch {
     // Carregar pedidos disponíveis sem verificação de integridade para evitar travamentos
     const allOrders = this.store.getOrders();
     console.log("Total de pedidos:", allOrders.length);
-    
+
     // Debug: verificar pedidos com batchCode
-    const ordersWithBatch = allOrders.filter(o => o.batchCode && o.batchCode.trim() !== "");
-    console.log("Pedidos com batchCode:", ordersWithBatch.map(o => ({ id: o.id, batchCode: o.batchCode })));
-    
+    const ordersWithBatch = allOrders.filter(
+      (o) => o.batchCode && o.batchCode.trim() !== ""
+    );
+    console.log(
+      "Pedidos com batchCode:",
+      ordersWithBatch.map((o) => ({ id: o.id, batchCode: o.batchCode }))
+    );
+
     // Debug específico para pedidos mencionados pelo usuário
-    const mentionedOrders = ["920", "892-2", "921", "918", "915", "908", "907", "896", "893", "894-1", "894-2", "895", "919", "916", "910", "905", "904", "906-1", "PESSOAL #5", "PESSOAL #6"];
+    const mentionedOrders = [
+      "920",
+      "892-2",
+      "921",
+      "918",
+      "915",
+      "908",
+      "907",
+      "896",
+      "893",
+      "894-1",
+      "894-2",
+      "895",
+      "919",
+      "916",
+      "910",
+      "905",
+      "904",
+      "906-1",
+      "PESSOAL #5",
+      "PESSOAL #6",
+    ];
     console.log("=== DEBUG PEDIDOS MENCIONADOS ===");
-    mentionedOrders.forEach(id => {
-      const order = allOrders.find(o => o.id === id);
+    mentionedOrders.forEach((id) => {
+      const order = allOrders.find((o) => o.id === id);
       if (order) {
         console.log(`Pedido ${id}:`, {
           id: order.id,
@@ -212,18 +238,42 @@ export class Batch {
           hasBatchCode: !!(order.batchCode && order.batchCode.trim() !== ""),
           shippingType: order.shippingType,
           paymentStatus: order.paymentStatus,
-          isEligible: order.shippingType === "PADRAO" && order.paymentStatus === "PAGO"
+          isEligible:
+            order.shippingType === "PADRAO" && order.paymentStatus === "PAGO",
         });
       } else {
         console.log(`Pedido ${id}: NÃO ENCONTRADO`);
       }
     });
     console.log("=== FIM DEBUG PEDIDOS MENCIONADOS ===");
+    
+    // Debug: verificar se há pedidos com batchCode vazio que deveriam estar em lotes
+    console.log("=== VERIFICAÇÃO DE LOTES ===");
+    this.store.getBatches().forEach(batch => {
+      console.log(`Lote ${batch.code}:`, {
+        name: batch.name,
+        orderIds: batch.orderIds,
+        orderCount: batch.orderIds.length
+      });
+      
+      // Verificar se os pedidos do lote têm batchCode correto
+      batch.orderIds.forEach(orderId => {
+        const order = allOrders.find(o => o.id === orderId);
+        if (order) {
+          if (order.batchCode !== batch.code) {
+            console.warn(`⚠️ Pedido ${orderId} está no lote ${batch.code} mas tem batchCode = "${order.batchCode}"`);
+          }
+        } else {
+          console.warn(`⚠️ Pedido ${orderId} está no lote ${batch.code} mas não foi encontrado`);
+        }
+      });
+    });
+    console.log("=== FIM VERIFICAÇÃO DE LOTES ===");
 
     const availableOrders = allOrders.filter((order) => {
       // Verificar se o pedido já está em algum lote
       const hasBatchCode = order.batchCode && order.batchCode.trim() !== "";
-      
+
       // Debug específico para pedidos mencionados
       if (mentionedOrders.includes(order.id)) {
         console.log(`=== FILTRO PEDIDO ${order.id} ===`);
@@ -233,19 +283,23 @@ export class Batch {
         console.log("- shippingType:", order.shippingType);
         console.log("- paymentStatus:", order.paymentStatus);
       }
-      
+
       // Se estamos editando um lote, permitir pedidos que já estão neste lote
       if (this.currentBatchCode && order.batchCode === this.currentBatchCode) {
         if (mentionedOrders.includes(order.id)) {
-          console.log(`✅ Incluindo pedido ${order.id} que já está no lote ${this.currentBatchCode}`);
+          console.log(
+            `✅ Incluindo pedido ${order.id} que já está no lote ${this.currentBatchCode}`
+          );
         }
         return true;
       }
-      
+
       // Se o pedido já está em outro lote, não está disponível
       if (hasBatchCode && order.batchCode !== this.currentBatchCode) {
         if (mentionedOrders.includes(order.id)) {
-          console.log(`❌ Excluindo pedido ${order.id} que já está no lote ${order.batchCode}`);
+          console.log(
+            `❌ Excluindo pedido ${order.id} que já está no lote ${order.batchCode}`
+          );
         }
         return false;
       }
@@ -266,10 +320,12 @@ export class Batch {
 
     console.log("Pedidos disponíveis para lote:", availableOrders.length);
     console.log("Pedidos disponíveis:", availableOrders);
-    
+
     // Debug adicional: verificar se há pedidos duplicados
-    const availableIds = availableOrders.map(o => o.id);
-    const duplicateIds = availableIds.filter((id, index) => availableIds.indexOf(id) !== index);
+    const availableIds = availableOrders.map((o) => o.id);
+    const duplicateIds = availableIds.filter(
+      (id, index) => availableIds.indexOf(id) !== index
+    );
     if (duplicateIds.length > 0) {
       console.warn("Pedidos duplicados encontrados:", duplicateIds);
     }
