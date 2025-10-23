@@ -205,7 +205,6 @@ export class Batch {
       ordersWithBatch.map((o) => ({ id: o.id, batchCode: o.batchCode }))
     );
 
-
     // Verificar se há inconsistências e executar reparo se necessário
     const hasInconsistencies = this.store.getBatches().some((batch) => {
       return batch.orderIds.some((orderId) => {
@@ -232,13 +231,32 @@ export class Batch {
       // Verificar se o pedido já está em algum lote
       const hasBatchCode = order.batchCode && order.batchCode.trim() !== "";
 
+      // Debug específico para pedidos problemáticos
+      const problemOrders = ['389', '387', '503', '498', '612', '890'];
+      if (problemOrders.includes(String(order.id))) {
+        console.log(`🔍 DEBUG Pedido ${order.id}:`, {
+          id: order.id,
+          batchCode: order.batchCode,
+          hasBatchCode: hasBatchCode,
+          currentBatchCode: this.currentBatchCode,
+          shippingType: order.shippingType,
+          paymentStatus: order.paymentStatus
+        });
+      }
+
       // Se estamos editando um lote, permitir pedidos que já estão neste lote
       if (this.currentBatchCode && order.batchCode === this.currentBatchCode) {
+        if (problemOrders.includes(String(order.id))) {
+          console.log(`✅ Pedido ${order.id} permitido - está no lote atual ${this.currentBatchCode}`);
+        }
         return true;
       }
 
       // Se o pedido já está em outro lote, não está disponível
       if (hasBatchCode && order.batchCode !== this.currentBatchCode) {
+        if (problemOrders.includes(String(order.id))) {
+          console.log(`❌ Pedido ${order.id} rejeitado - já está no lote ${order.batchCode}`);
+        }
         return false;
       }
 
@@ -247,6 +265,15 @@ export class Batch {
         order.shippingType === "PADRAO" &&
         order.paymentStatus === "PAGO" &&
         !hasBatchCode; // Não deve ter batchCode
+
+      if (problemOrders.includes(String(order.id))) {
+        console.log(`🔍 Pedido ${order.id} elegibilidade:`, {
+          isEligible: isEligible,
+          shippingType: order.shippingType,
+          paymentStatus: order.paymentStatus,
+          hasBatchCode: hasBatchCode
+        });
+      }
 
       return isEligible;
     });
