@@ -75,6 +75,14 @@ class App {
       });
     }
 
+    // Exportar planilha de lotes
+    const exportBatchesBtn = document.getElementById("export-batches-btn");
+    if (exportBatchesBtn) {
+      exportBatchesBtn.addEventListener("click", () => {
+        this.exportBatchesToCSV();
+      });
+    }
+
     // Orders
     const newOrderBtn = document.getElementById("new-order-btn");
     if (newOrderBtn) {
@@ -293,7 +301,6 @@ class App {
       const idB = parseInt(String(b.id || "0"), 10);
       return idB - idA; // decrescente
     });
-
 
     total && (total.textContent = String(sortedFiltered.length));
 
@@ -524,6 +531,73 @@ class App {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  exportBatchesToCSV() {
+    const batches = this.store.getBatches();
+    const allRows = [];
+
+    // Cabeçalho da planilha
+    const header = [
+      "Nome do Lote",
+      "Pedidos no Lote",
+      "Status de Envio",
+      "Código de Rastreio",
+    ];
+
+    allRows.push(header);
+
+    // Para cada lote, criar uma linha
+    batches.forEach((batch) => {
+      const orders = batch.orderIds
+        .map((orderId) => this.store.getOrder(orderId))
+        .filter(Boolean);
+
+      // Lista de pedidos (IDs separados por vírgula)
+      const orderIds =
+        orders.length > 0
+          ? orders.map((order) => `#${order.id}`).join(", ")
+          : "Nenhum pedido";
+
+      // Status de envio do lote
+      let shippingStatus = "Não enviado";
+      if (batch.isReceived) {
+        shippingStatus = "Recebido";
+      } else if (batch.isAbnormal) {
+        shippingStatus = "Status Anormal";
+      } else if (batch.isShipped) {
+        shippingStatus = "Enviado";
+      }
+
+      const row = [
+        batch.name || batch.code || "",
+        orderIds,
+        shippingStatus,
+        batch.inboundTracking || "",
+      ];
+
+      allRows.push(row);
+    });
+
+    // Converter para CSV
+    const csv = allRows
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+      )
+      .join("\n");
+
+    // Criar e baixar arquivo
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `planilha-lotes-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    this.ui.showToast("Planilha de lotes exportada com sucesso!", "success");
   }
 
   renderOrders() {
