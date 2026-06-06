@@ -420,7 +420,66 @@
               </button>
             </div>
             <div class="form__group">
-              <label class="form__label">Selecionar Pedidos</label>
+              <label class="form__label">Adicionar Pedidos Diretamente</label>
+              <p class="form__hint">
+                Cadastre pedidos aqui sem precisar ir na tela de Pedidos
+                primeiro.
+              </p>
+              <div class="inline-order-form">
+                <div class="inline-order-form__field">
+                  <label for="inline-order-id" class="form__label"
+                    >Nº do Pedido *</label
+                  >
+                  <input
+                    type="text"
+                    id="inline-order-id"
+                    class="form__input"
+                    placeholder="Ex: 1234"
+                  />
+                </div>
+                <div class="inline-order-form__field inline-order-form__field--wide">
+                  <label for="inline-order-product" class="form__label"
+                    >Camiseta *</label
+                  >
+                  <input
+                    type="text"
+                    id="inline-order-product"
+                    class="form__input"
+                    placeholder="Ex: Camiseta Banda X"
+                  />
+                </div>
+                <div class="inline-order-form__field">
+                  <label for="inline-order-size" class="form__label"
+                    >Tamanho</label
+                  >
+                  <input
+                    type="text"
+                    id="inline-order-size"
+                    class="form__input"
+                    placeholder="Ex: M"
+                  />
+                </div>
+                <button
+                  type="button"
+                  class="btn btn--secondary inline-order-form__btn"
+                  id="add-inline-order-btn"
+                >
+                  + Adicionar
+                </button>
+              </div>
+              <div
+                id="inline-orders-section"
+                class="inline-orders-section"
+                style="display: none"
+              >
+                <h4>
+                  Pedidos a criar (<span id="inline-orders-count">0</span>)
+                </h4>
+                <div id="inline-orders-list" class="inline-orders-list"></div>
+              </div>
+            </div>
+            <div class="form__group">
+              <label class="form__label">Ou Selecionar Pedidos Existentes</label>
               <input
                 type="text"
                 id="order-search-modal"

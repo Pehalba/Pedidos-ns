@@ -3,6 +3,7 @@ export class Batch {
     this.store = store;
     this.currentBatchCode = null;
     this.selectedOrderIds = [];
+    this.inlineOrders = [];
     this.setupEventListeners();
   }
 
@@ -37,6 +38,26 @@ export class Batch {
         if (window.app.supplier) {
           window.app.supplier.openSuppliersModal();
         }
+      }
+
+      if (e.target.id === "add-inline-order-btn") {
+        this.addInlineOrder();
+      }
+
+      if (e.target.classList.contains("remove-inline-order")) {
+        const index = parseInt(e.target.dataset.index, 10);
+        this.removeInlineOrder(index);
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      const modal = document.getElementById("batch-modal");
+      if (!modal?.classList.contains("modal--show")) return;
+
+      const inlineFields = ["inline-order-id", "inline-order-product", "inline-order-size"];
+      if (e.key === "Enter" && inlineFields.includes(document.activeElement?.id)) {
+        e.preventDefault();
+        this.addInlineOrder();
       }
     });
 
@@ -85,6 +106,7 @@ export class Batch {
   openCreateModal() {
     this.currentBatchCode = null;
     this.selectedOrderIds = [];
+    this.inlineOrders = [];
     this.resetForm();
     this.loadAvailableOrders();
 
@@ -106,6 +128,7 @@ export class Batch {
     const batch = this.store.getBatch(batchCode);
     if (!batch) return;
 
+    this.inlineOrders = [];
     this.selectedOrderIds = [...batch.orderIds];
     this.loadFormData(batch);
     this.loadAvailableOrders();
@@ -118,7 +141,8 @@ export class Batch {
     // Carregar fornecedores
     this.updateBatchSupplierSelect();
 
-    this.updateSelectedOrdersDisplay(); // Atualizar exibição das seleções
+    this.renderInlineOrders();
+    this.updateSelectedOrdersDisplay();
     this.showModal();
     this.setupModalEventListeners();
   }
@@ -156,7 +180,159 @@ export class Batch {
 
     // Limpar seleção de pedidos
     this.selectedOrderIds = [];
+    this.inlineOrders = [];
+    this.clearInlineOrderInputs();
+    this.renderInlineOrders();
     this.renderAvailableOrders([]);
+  }
+
+  clearInlineOrderInputs() {
+    const idInput = document.getElementById("inline-order-id");
+    const productInput = document.getElementById("inline-order-product");
+    const sizeInput = document.getElementById("inline-order-size");
+    if (idInput) idInput.value = "";
+    if (productInput) productInput.value = "";
+    if (sizeInput) sizeInput.value = "";
+  }
+
+  addInlineOrder() {
+    const idInput = document.getElementById("inline-order-id");
+    const productInput = document.getElementById("inline-order-product");
+    const sizeInput = document.getElementById("inline-order-size");
+
+    const id = idInput?.value.trim();
+    const productName = productInput?.value.trim();
+    const size = sizeInput?.value.trim() || "";
+
+    if (!id) {
+      this.showToast("Informe o número do pedido", "error");
+      idInput?.focus();
+      return;
+    }
+
+    if (!productName) {
+      this.showToast("Informe a camiseta", "error");
+      productInput?.focus();
+      return;
+    }
+
+    if (this.inlineOrders.some((o) => o.id === id)) {
+      this.showToast("Este pedido já está na lista de criação", "error");
+      return;
+    }
+
+    if (this.selectedOrderIds.includes(id)) {
+      this.showToast("Este pedido já está selecionado", "error");
+      return;
+    }
+
+    const existingOrder = this.store.getOrder(id);
+    if (existingOrder) {
+      if (
+        existingOrder.batchCode &&
+        existingOrder.batchCode !== this.currentBatchCode
+      ) {
+        this.showToast(
+          `Pedido #${id} já está no lote ${existingOrder.batchCode}`,
+          "error"
+        );
+        return;
+      }
+
+      if (existingOrder.shippingType !== "PADRAO") {
+        this.showToast(
+          `Pedido #${id} é EXPRESSO e não pode entrar em lote`,
+          "error"
+        );
+        return;
+      }
+
+      this.selectedOrderIds.push(id);
+      this.clearInlineOrderInputs();
+      this.renderInlineOrders();
+      this.updateSelectedOrdersDisplay();
+      this.loadAvailableOrders();
+      this.showToast(
+        `Pedido #${id} existente adicionado ao lote`,
+        "success"
+      );
+      return;
+    }
+
+    this.inlineOrders.push({ id, productName, size });
+    this.clearInlineOrderInputs();
+    this.renderInlineOrders();
+    idInput?.focus();
+  }
+
+  removeInlineOrder(index) {
+    this.inlineOrders.splice(index, 1);
+    this.renderInlineOrders();
+  }
+
+  renderInlineOrders() {
+    const section = document.getElementById("inline-orders-section");
+    const count = document.getElementById("inline-orders-count");
+    const list = document.getElementById("inline-orders-list");
+
+    if (!section || !count || !list) return;
+
+    if (this.inlineOrders.length === 0) {
+      section.style.display = "none";
+      return;
+    }
+
+    section.style.display = "block";
+    count.textContent = this.inlineOrders.length;
+
+    list.innerHTML = this.inlineOrders
+      .map(
+        (order, index) => `
+        <div class="inline-order-item">
+          <div>
+            <span class="inline-order-item__badge">NOVO</span>
+            <strong>#${order.id}</strong> — ${order.productName}
+            ${order.size ? `<small> (${order.size})</small>` : ""}
+          </div>
+          <button
+            type="button"
+            class="remove-btn remove-inline-order"
+            data-index="${index}"
+            title="Remover"
+          >×</button>
+        </div>
+      `
+      )
+      .join("");
+  }
+
+  async createInlineOrders() {
+    const createdIds = [];
+
+    for (const inline of this.inlineOrders) {
+      const existing = this.store.getOrder(inline.id);
+      if (existing) {
+        createdIds.push(inline.id);
+        continue;
+      }
+
+      const newOrder = await this.store.addOrder({
+        id: inline.id,
+        productName: inline.productName,
+        size: inline.size,
+        customerName: "",
+        sku: "",
+        shippingType: "PADRAO",
+        paymentStatus: "PAGO",
+        notes: "",
+      });
+
+      if (newOrder) {
+        createdIds.push(newOrder.id);
+      }
+    }
+
+    return createdIds;
   }
 
   loadFormData(batch) {
@@ -395,16 +571,15 @@ export class Batch {
   }
 
   clearAllSelectedOrders() {
-    // Limpar lista de selecionados
     this.selectedOrderIds = [];
+    this.inlineOrders = [];
 
-    // Desmarcar todos os checkboxes
     const checkboxes = document.querySelectorAll(".order-checkbox");
     checkboxes.forEach((checkbox) => {
       checkbox.checked = false;
     });
 
-    // Atualizar a exibição
+    this.renderInlineOrders();
     this.updateSelectedOrdersDisplay();
   }
 
@@ -449,12 +624,17 @@ export class Batch {
       return;
     }
 
+    const inlineOrderIds = await this.createInlineOrders();
+    const allOrderIds = [
+      ...new Set([...this.selectedOrderIds, ...inlineOrderIds]),
+    ];
+
     const batchData = {
       name: nameInput.value.trim(),
       inboundTracking: trackingInput ? trackingInput.value.trim() : "",
       notes: notesInput ? notesInput.value.trim() : "",
       supplierId: document.getElementById("batch-supplier").value || "",
-      orderIds: this.selectedOrderIds,
+      orderIds: allOrderIds,
     };
 
     console.log("Dados do lote:", batchData);

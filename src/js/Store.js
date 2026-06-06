@@ -1245,11 +1245,13 @@ export class Store {
     let repairsMade = 0;
 
     // 1. Limpar batchCode de todos os pedidos primeiro
-    const problemOrders = ['389', '387', '503', '498', '612', '890'];
+    const problemOrders = ["389", "387", "503", "498", "612", "890"];
     this.orders.forEach((order) => {
       if (order.batchCode) {
         if (problemOrders.includes(String(order.id))) {
-          console.log(`🧹 Limpando pedido ${order.id}: batchCode era "${order.batchCode}"`);
+          console.log(
+            `🧹 Limpando pedido ${order.id}: batchCode era "${order.batchCode}"`
+          );
         }
         delete order.batchCode;
         delete order.internalTag;
@@ -1263,7 +1265,9 @@ export class Store {
         const order = this.getOrder(orderId);
         if (order) {
           if (problemOrders.includes(String(order.id))) {
-            console.log(`🔗 Reassociando pedido ${order.id} ao lote ${batch.code}`);
+            console.log(
+              `🔗 Reassociando pedido ${order.id} ao lote ${batch.code}`
+            );
           }
           order.batchCode = batch.code;
           order.internalTag = this.generateInternalTag(
@@ -1289,13 +1293,16 @@ export class Store {
         batch.orderIds = validOrderIds;
         repairsMade++;
       }
-      
+
       // Debug: verificar se pedidos problemáticos estão neste lote
-      const problemOrdersInBatch = batch.orderIds.filter(orderId => 
+      const problemOrdersInBatch = batch.orderIds.filter((orderId) =>
         problemOrders.includes(String(orderId))
       );
       if (problemOrdersInBatch.length > 0) {
-        console.log(`🔍 Lote ${batch.code} contém pedidos problemáticos:`, problemOrdersInBatch);
+        console.log(
+          `🔍 Lote ${batch.code} contém pedidos problemáticos:`,
+          problemOrdersInBatch
+        );
       }
     });
 
