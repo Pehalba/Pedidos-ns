@@ -700,8 +700,10 @@ export class Store {
     console.log("Pedidos novos:", newBatch.orderIds);
 
     // Verificar se os pedidos mudaram de forma mais robusta
-    const oldOrderIds = oldBatch.orderIds || [];
-    const newOrderIds = newBatch.orderIds || [];
+    const normalizeOrderId = (id) => String(id ?? "").trim();
+    const oldOrderIds = (oldBatch.orderIds || []).map(normalizeOrderId);
+    const newOrderIds = (newBatch.orderIds || []).map(normalizeOrderId);
+    newBatch.orderIds = newOrderIds;
     const pedidosMudaram =
       oldOrderIds.length !== newOrderIds.length ||
       !oldOrderIds.every((id) => newOrderIds.includes(id)) ||

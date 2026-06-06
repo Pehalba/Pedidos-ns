@@ -12,11 +12,14 @@ export class Batch {
     document.addEventListener("change", (e) => {
       if (e.target.classList.contains("order-checkbox")) {
         const orderId = e.target.value;
+        const normalizedId = this.normalizeOrderId(orderId);
         if (e.target.checked) {
-          this.selectedOrderIds.push(orderId);
+          if (!this.isOrderSelected(normalizedId)) {
+            this.selectedOrderIds.push(normalizedId);
+          }
         } else {
           this.selectedOrderIds = this.selectedOrderIds.filter(
-            (id) => id !== orderId
+            (id) => this.normalizeOrderId(id) !== normalizedId
           );
         }
         this.updateSelectedOrdersDisplay();
@@ -103,22 +106,57 @@ export class Batch {
     }
   }
 
+  normalizeOrderId(id) {
+    return String(id ?? "").trim();
+  }
+
+  findOrder(id) {
+    const normalizedId = this.normalizeOrderId(id);
+    return this.store
+      .getOrders()
+      .find((order) => this.normalizeOrderId(order.id) === normalizedId);
+  }
+
+  isOrderSelected(id) {
+    const normalizedId = this.normalizeOrderId(id);
+    return this.selectedOrderIds.some(
+      (orderId) => this.normalizeOrderId(orderId) === normalizedId
+    );
+  }
+
+  updateBatchModalLabels(isEdit) {
+    const hint = document.getElementById("inline-order-hint");
+    const selectedTitle = document.getElementById("selected-orders-title");
+
+    if (hint) {
+      hint.textContent = isEdit
+        ? "Adicione novos pedidos ao lote informando número e camiseta."
+        : "Informe o número do pedido e a camiseta para incluir no lote.";
+    }
+
+    if (selectedTitle) {
+      selectedTitle.textContent = isEdit
+        ? "Pedidos já no lote"
+        : "Pedidos selecionados";
+    }
+  }
+
   openCreateModal() {
     this.currentBatchCode = null;
     this.selectedOrderIds = [];
     this.inlineOrders = [];
     this.resetForm();
     this.loadAvailableOrders();
+    this.updateBatchModalLabels(false);
 
     const titleElement = document.getElementById("batch-modal-title");
     if (titleElement) {
       titleElement.textContent = "Novo Lote";
     }
 
-    // Carregar fornecedores
     this.updateBatchSupplierSelect();
-
-    this.updateSelectedOrdersDisplay(); // Atualizar exibição das seleções
+    this.renderInlineOrders();
+    this.updateSelectedOrdersDisplay();
     this.showModal();
     this.setupModalEventListeners();
   }
@@ -129,22 +167,27 @@ export class Batch {
     if (!batch) return;
 
     this.inlineOrders = [];
-    this.selectedOrderIds = [...batch.orderIds];
-    this.loadFormData(batch);
-    this.loadAvailableOrders();
+    this.selectedOrderIds = (batch.orderIds || []).map((id) =>
+      this.normalizeOrderId(id)
+    );
+    this.clearInlineOrderInputs();
+    this.updateBatchModalLabels(true);
 
     const titleElement = document.getElementById("batch-modal-title");
     if (titleElement) {
       titleElement.textContent = "Editar Lote";
     }
 
-    // Carregar fornecedores
     this.updateBatchSupplierSelect();
-
+    this.loadFormData(batch);
+    this.loadAvailableOrders();
     this.renderInlineOrders();
     this.updateSelectedOrdersDisplay();
     this.showModal();
     this.setupModalEventListeners();
+
+    const inlineSection = document.getElementById("inline-order-section");
+    inlineSection?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   openDetailModal(batchCode) {
@@ -200,7 +243,7 @@ export class Batch {
     const productInput = document.getElementById("inline-order-product");
     const sizeInput = document.getElementById("inline-order-size");
 
-    const id = idInput?.value.trim();
+    const id = this.normalizeOrderId(idInput?.value);
     const productName = productInput?.value.trim();
     const size = sizeInput?.value.trim() || "";
 
@@ -216,17 +259,17 @@ export class Batch {
       return;
     }
 
-    if (this.inlineOrders.some((o) => o.id === id)) {
+    if (this.inlineOrders.some((o) => this.normalizeOrderId(o.id) === id)) {
       this.showToast("Este pedido já está na lista de criação", "error");
       return;
     }
 
-    if (this.selectedOrderIds.includes(id)) {
-      this.showToast("Este pedido já está selecionado", "error");
+    if (this.isOrderSelected(id)) {
+      this.showToast("Este pedido já está no lote", "error");
       return;
     }
 
-    const existingOrder = this.store.getOrder(id);
+    const existingOrder = this.findOrder(id);
     if (existingOrder) {
       if (
         existingOrder.batchCode &&
@@ -253,7 +296,7 @@ export class Batch {
       this.updateSelectedOrdersDisplay();
       this.loadAvailableOrders();
       this.showToast(
-        `Pedido #${id} existente adicionado ao lote`,
+        `Pedido #${id} adicionado ao lote`,
         "success"
       );
       return;
@@ -262,12 +305,14 @@ export class Batch {
     this.inlineOrders.push({ id, productName, size });
     this.clearInlineOrderInputs();
     this.renderInlineOrders();
+    this.updateSelectedOrdersDisplay();
     idInput?.focus();
   }
 
   removeInlineOrder(index) {
     this.inlineOrders.splice(index, 1);
     this.renderInlineOrders();
+    this.updateSelectedOrdersDisplay();
   }
 
   renderInlineOrders() {
@@ -310,14 +355,15 @@ export class Batch {
     const createdIds = [];
 
     for (const inline of this.inlineOrders) {
-      const existing = this.store.getOrder(inline.id);
+      const id = this.normalizeOrderId(inline.id);
+      const existing = this.findOrder(id);
       if (existing) {
-        createdIds.push(inline.id);
+        createdIds.push(id);
         continue;
       }
 
       const newOrder = await this.store.addOrder({
-        id: inline.id,
+        id,
         productName: inline.productName,
         size: inline.size,
         customerName: "",
@@ -328,7 +374,7 @@ export class Batch {
       });
 
       if (newOrder) {
-        createdIds.push(newOrder.id);
+        createdIds.push(this.normalizeOrderId(newOrder.id));
       }
     }
 
@@ -491,7 +537,7 @@ export class Batch {
               type="checkbox"
               class="order-checkbox"
               value="${order.id}"
-              ${this.selectedOrderIds.includes(order.id) ? "checked" : ""}
+              ${this.isOrderSelected(order.id) ? "checked" : ""}
             />
             <span class="checkbox-custom"></span>
             <div class="order-info">
@@ -516,20 +562,24 @@ export class Batch {
 
     if (!section || !count || !list) return;
 
-    if (this.selectedOrderIds.length === 0) {
+    const hasSelected = this.selectedOrderIds.length > 0;
+    const hasInline = this.inlineOrders.length > 0;
+
+    if (!hasSelected && !hasInline) {
       section.style.display = "none";
       return;
     }
 
     section.style.display = "block";
-    count.textContent = this.selectedOrderIds.length;
+    count.textContent = hasInline
+      ? `${this.selectedOrderIds.length} + ${this.inlineOrders.length} novo(s)`
+      : String(this.selectedOrderIds.length);
 
-    // Buscar informações dos pedidos selecionados
     const selectedOrders = this.selectedOrderIds
-      .map((id) => this.store.getOrder(id))
+      .map((id) => this.findOrder(id))
       .filter(Boolean);
 
-    const ordersHtml = selectedOrders
+    const selectedHtml = selectedOrders
       .map(
         (order) => `
         <div class="selected-order-item">
@@ -551,13 +601,34 @@ export class Batch {
       )
       .join("");
 
-    list.innerHTML = ordersHtml;
+    const inlineHtml = this.inlineOrders
+      .map(
+        (order, index) => `
+        <div class="selected-order-item selected-order-item--pending">
+          <div class="order-info">
+            <span class="inline-order-item__badge">NOVO</span>
+            <strong>#${order.id}</strong> - ${order.productName}
+            <br>
+            <small>${order.size || "Sem tamanho"}</small>
+          </div>
+          <button
+            type="button"
+            class="remove-btn remove-inline-order"
+            data-index="${index}"
+            title="Remover"
+          >×</button>
+        </div>
+      `
+      )
+      .join("");
+
+    list.innerHTML = selectedHtml + inlineHtml;
   }
 
   removeSelectedOrder(orderId) {
-    // Remover da lista de selecionados
+    const normalizedId = this.normalizeOrderId(orderId);
     this.selectedOrderIds = this.selectedOrderIds.filter(
-      (id) => id !== orderId
+      (id) => this.normalizeOrderId(id) !== normalizedId
     );
 
     // Desmarcar o checkbox correspondente
@@ -626,8 +697,12 @@ export class Batch {
 
     const inlineOrderIds = await this.createInlineOrders();
     const allOrderIds = [
-      ...new Set([...this.selectedOrderIds, ...inlineOrderIds]),
-    ];
+      ...new Set(
+        [...this.selectedOrderIds, ...inlineOrderIds].map((id) =>
+          this.normalizeOrderId(id)
+        )
+      ),
+    ].filter(Boolean);
 
     const batchData = {
       name: nameInput.value.trim(),
@@ -663,6 +738,8 @@ export class Batch {
         this.showToast("Lote criado com sucesso", "success");
       }
 
+      this.inlineOrders = [];
+      this.renderInlineOrders();
       console.log("Fechando modal e renderizando dashboard");
       this.closeModal();
       window.app.renderDashboard();
