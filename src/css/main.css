@@ -329,6 +329,8 @@ body {
   padding: var(--spacing-md);
   transition: all var(--transition-fast);
   min-height: 200px;
+  min-width: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -1001,10 +1003,14 @@ body {
   padding-top: var(--spacing-sm);
   border-top: 1px solid var(--color-gray-200);
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .batch-card__orders-list {
   margin-top: var(--spacing-xs);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .order-preview-item {
@@ -1013,18 +1019,24 @@ body {
   gap: var(--spacing-xs);
   padding: var(--spacing-xs) 0;
   font-size: var(--font-size-xs);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .order-preview-id {
   font-weight: var(--font-weight-medium);
   color: var(--color-gray-700);
   font-family: "Courier New", monospace;
-  min-width: 40px;
+  flex-shrink: 0;
 }
 
 .order-preview-product {
   color: var(--color-gray-600);
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .order-preview-more {

@@ -525,7 +525,7 @@ export class UI {
     const ordersHtml = previewOrders
       .map(
         (order) => `
-        <div class="order-preview-item">
+        <div class="order-preview-item" title="#${order.id} - ${order.productName}">
           <span class="order-preview-id">#${order.id}</span>
           <span class="order-preview-product">${order.productName}</span>
         </div>
